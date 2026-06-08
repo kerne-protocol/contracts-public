@@ -1,0 +1,89 @@
+{
+  "_comment": "Kerne Protocol public address registry for Base mainnet (chain 8453). Curated public mirror: contains only on-chain-public facts (contract names, addresses, types, explorer links, verification status). Operational and internal records are kept in Kerne's working repository and are out of scope here.",
+  "chainId": 8453,
+  "chainName": "base",
+  "nativeToken": "ETH",
+  "admin": {
+    "safe": "0x52d3E450bA6c299B1B07298F1E87DD74732D4877",
+    "type": "Gnosis Safe 2-of-3",
+    "role": "Holds DEFAULT_ADMIN_ROLE on the protocol contracts"
+  },
+  "externalTokens": {
+    "WETH": "0x4200000000000000000000000000000000000006",
+    "USDC": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "wstETH": "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452"
+  },
+  "contracts": {
+    "kUSD": {
+      "address": "0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3",
+      "type": "Synthetic dollar (ERC-20, AccessControl)",
+      "explorer": "https://basescan.org/address/0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3"
+    },
+    "skUSD": {
+      "address": "0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4",
+      "type": "Staked kUSD (ERC-4626 yield vault)",
+      "explorer": "https://basescan.org/address/0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4"
+    },
+    "KUSDPSM": {
+      "address": "0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc",
+      "type": "Peg Stability Module (USDC <> kUSD)",
+      "explorer": "https://basescan.org/address/0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc"
+    },
+    "KerneVault": {
+      "address": "0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC",
+      "type": "Collateral vault (ERC-4626)",
+      "explorer": "https://basescan.org/address/0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC"
+    },
+    "KERNE": {
+      "address": "0x230f3a63E8413D42bEe9103b98a204030206186c",
+      "type": "Governance token (canonical v2, 1,000,000,000 fixed supply, no mint function)",
+      "explorer": "https://basescan.org/address/0x230f3a63E8413D42bEe9103b98a204030206186c"
+    },
+    "esKERNE": {
+      "address": "0x29c1d396A35aB75a8Bb8dC3949f98edFa5f25b34",
+      "type": "Escrowed KERNE (reward token)",
+      "explorer": "https://basescan.org/address/0x29c1d396A35aB75a8Bb8dC3949f98edFa5f25b34"
+    },
+    "KerneStaking": {
+      "address": "0x032Af1631671126A689614c0c957De774b45D582",
+      "type": "veKERNE staking",
+      "explorer": "https://basescan.org/address/0x032Af1631671126A689614c0c957De774b45D582"
+    },
+    "KerneTreasury": {
+      "address": "0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5",
+      "type": "Protocol treasury (v2)",
+      "explorer": "https://basescan.org/address/0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5"
+    },
+    "KerneInsuranceFund": {
+      "address": "0xE8799FCF327C6D2f78103a3c9308C93592A30403",
+      "type": "Insurance / backstop fund (v2)",
+      "explorer": "https://basescan.org/address/0xE8799FCF327C6D2f78103a3c9308C93592A30403"
+    },
+    "KerneReferral": {
+      "address": "0x1A04AF62baFc84b08b19d2aF7285eD5f8dAe4D9f",
+      "type": "On-chain referral tracking",
+      "explorer": "https://basescan.org/address/0x1A04AF62baFc84b08b19d2aF7285eD5f8dAe4D9f"
+    },
+    "KerneYieldDistributor": {
+      "address": "0x096e38a04B632D28E017f86836225E0956CaD878",
+      "type": "Yield distribution",
+      "explorer": "https://basescan.org/address/0x096e38a04B632D28E017f86836225E0956CaD878"
+    },
+    "KerneYieldOracle": {
+      "address": "0x8DE2d5ac5aBc7331a6E1d450a5c021db18599CdB",
+      "type": "On-chain APY oracle",
+      "explorer": "https://basescan.org/address/0x8DE2d5ac5aBc7331a6E1d450a5c021db18599CdB"
+    },
+    "KerneFlashArbBot": {
+      "address": "0x57e73919Efc8a70B40a0bFc562C4DC9e58c4D76F",
+      "type": "Atomic arbitrage executor",
+      "explorer": "https://basescan.org/address/0x57e73919Efc8a70B40a0bFc562C4DC9e58c4D76F"
+    }
+  },
+  "retired": {
+    "_comment": "Superseded deployments, kept for historical reconciliation. Do not use.",
+    "kUSD_v1": "0x257579db2702BAeeBFAC5c19d354f2FF39831299",
+    "KERNE_v1": "0xfEA3D217F5f2304C8551dc9F5B5169F2c2d87340"
+  },
+  "notes": "Live state (TVL, kUSD supply, role grants, peg) is authoritative on-chain. Verify any value with the cast calls in HOW_TO_VERIFY_KERNE.md or run scripts/verify_public_endpoints.sh. Source-vs-deployed drift for contracts with in-development fixes is disclosed in the gaps array of https://kerne.fi/api/risk-status."
+}
