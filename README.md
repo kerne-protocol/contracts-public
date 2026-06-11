@@ -12,10 +12,35 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 
 ## Where the contract source is
 
-The deployed contracts are **source-verified on-chain**. The fastest way to read the exact source that corresponds to the deployed bytecode is the explorer's verified-source tab for each address in `deployments/8453.json`:
+11 of the 13 contracts in the registry are source-verified on at least one explorer. Per-contract status, checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab):
+
+| Contract | Address | BaseScan | Sourcify |
+|---|---|---|---|
+| kUSD | `0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3` | Verified | Verified (match) |
+| skUSD | `0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4` | Pending import | Verified (match) |
+| KUSDPSM | `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` | Verified | Verified (exact match) |
+| KerneVault | `0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC` | Verified | Verified (match) |
+| KERNE (v2) | `0x230f3a63E8413D42bEe9103b98a204030206186c` | Pending import | Verified (match) |
+| esKERNE | `0x29c1d396A35aB75a8Bb8dC3949f98edFa5f25b34` | Verified | Verified (exact match) |
+| KerneStaking | `0x032Af1631671126A689614c0c957De774b45D582` | **Not verified** | **Not verified** |
+| KerneTreasury | `0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5` | Pending import | Verified (exact match) |
+| KerneInsuranceFund | `0xE8799FCF327C6D2f78103a3c9308C93592A30403` | Pending import | Verified (exact match) |
+| KerneReferral | `0x1A04AF62baFc84b08b19d2aF7285eD5f8dAe4D9f` | Verified | Verified (match) |
+| KerneYieldDistributor | `0x096e38a04B632D28E017f86836225E0956CaD878` | Verified | Verified (match) |
+| KerneYieldOracle | `0x8DE2d5ac5aBc7331a6E1d450a5c021db18599CdB` | Verified | Verified (match) |
+| KerneFlashArbBot | `0x57e73919Efc8a70B40a0bFc562C4DC9e58c4D76F` | **Not verified** | **Not verified** |
+
+The two unverified contracts, disclosed plainly:
+
+- **KerneStaking** was deployed from source that predates a 2026-01-07 git-history reset; the deployed bytecode cannot be reproduced from any source tree we still hold (re-attempted 2026-06-11: current source compiles to a different code body, not a metadata-only difference). It will be re-deployed from verified source at the next contract ceremony.
+- **KerneFlashArbBot** has source-vs-deployed drift (in-development fixes awaiting redeploy) and is queued for redeploy, after which it will be verified at deploy time.
+
+"Pending import" means the source is already verified on Sourcify (link below) but the BaseScan badge has not been imported yet.
+
+Read the verified source per address:
 
 - BaseScan: `https://basescan.org/address/<address>#code`
-- Sourcify (perfect-match for several v2 contracts incl. KerneToken v2, Treasury v2, Insurance Fund v2, skUSD): `https://repo.sourcify.dev/contracts/full_match/8453/<address>/`
+- Sourcify: `https://repo.sourcify.dev/contracts/full_match/8453/<address>/` (or `partial_match` for "match"-tier entries)
 
 A full **forge-testable source mirror** (so you can `git clone && forge test` and diff bytecode locally) will be added to this repo at the next contract redeploy, when the in-development source and the deployed bytecode are realigned. Until then, the explorer-verified source above is the canonical, bytecode-matched reference, and the verification script + `HOW_TO_VERIFY_KERNE.md` cover the live-protocol claims end to end.
 

@@ -4,7 +4,7 @@ This directory publishes external audit reports as they land. Each report is com
 
 ## Current status: pre-audit
 
-As of the most recent commit, there is no published external audit. An audit-firm engagement is underway; this README and directory will be updated when a report lands.
+As of the most recent commit, there is no published external audit and no audit firm is engaged yet. An external engagement is planned before the public vault launch; this README and directory will be updated when a firm is engaged and again when a report lands. Internal adversarial audit reports are published at [kerne.fi/security/audits](https://kerne.fi/security/audits).
 
 The protocol's public bug bounty is live (see [`../SECURITY.md`](../SECURITY.md) and [kerne.fi/security](https://kerne.fi/security)).
 
