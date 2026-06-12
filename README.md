@@ -40,10 +40,11 @@ The two unverified contracts, disclosed plainly:
 
 Read the verified source per address:
 
+- **In this repo:** [`contracts/`](contracts/README.md) mirrors the explorer-verified source bundle for each of the 11 active verified contracts (one bundle per deployed address, including compiler `metadata.json` and constructor args), pulled verbatim from Sourcify 2026-06-12. Auditors: scoping reference with per-contract nSLOC at [`audits/SCOPE.md`](audits/SCOPE.md).
 - BaseScan: `https://basescan.org/address/<address>#code`
 - Sourcify: `https://repo.sourcify.dev/contracts/full_match/8453/<address>/` (or `partial_match` for "match"-tier entries)
 
-A full **forge-testable source mirror** (so you can `git clone && forge test` and diff bytecode locally) will be added to this repo at the next contract redeploy, when the in-development source and the deployed bytecode are realigned. Until then, the explorer-verified source above is the canonical, bytecode-matched reference, and the verification script + `HOW_TO_VERIFY_KERNE.md` cover the live-protocol claims end to end.
+A unified **forge-testable tree** (so you can `git clone && forge test` and diff bytecode locally from a single build) will be added at the next contract redeploy, when the in-development source and the deployed bytecode are realigned. Until then, the per-address bundles in `contracts/` and the explorers are the canonical, bytecode-matched reference, and the verification script + `HOW_TO_VERIFY_KERNE.md` cover the live-protocol claims end to end.
 
 ## What this repo is NOT
 
