@@ -12,7 +12,7 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 
 ## Where the contract source is
 
-11 of the 13 contracts in the registry are source-verified on both BaseScan and Sourcify. Per-contract status, checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles):
+12 of the 14 contracts tracked here (the 13 active contracts in the registry plus the retired KERNE v1 governance token) are source-verified on both BaseScan and Sourcify. Per-contract status, checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles):
 
 | Contract | Address | BaseScan | Sourcify |
 |---|---|---|---|
@@ -21,6 +21,7 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 | KUSDPSM | `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` | Verified | Verified (exact match) |
 | KerneVault | `0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC` | Verified | Verified (match) |
 | KERNE (v2) | `0x230f3a63E8413D42bEe9103b98a204030206186c` | Verified | Verified (match) |
+| KERNE (v1, retired) | `0xfEA3D217F5f2304C8551dc9F5B5169F2c2d87340` | Verified | Verified (match) |
 | esKERNE | `0x29c1d396A35aB75a8Bb8dC3949f98edFa5f25b34` | Verified | Verified (exact match) |
 | KerneStaking | `0x032Af1631671126A689614c0c957De774b45D582` | **Not verified** | **Not verified** |
 | KerneTreasury | `0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5` | Verified | Verified (exact match) |
@@ -29,6 +30,8 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 | KerneYieldDistributor | `0x096e38a04B632D28E017f86836225E0956CaD878` | Verified | Verified (match) |
 | KerneYieldOracle | `0x8DE2d5ac5aBc7331a6E1d450a5c021db18599CdB` | Verified | Verified (match) |
 | KerneFlashArbBot | `0x57e73919Efc8a70B40a0bFc562C4DC9e58c4D76F` | **Not verified** | **Not verified** |
+
+KERNE (v1) is retired and superseded by KERNE (v2); it remains source-verified and is listed for completeness (see the `retired` section of `deployments/8453.json`).
 
 The two unverified contracts, disclosed plainly:
 
