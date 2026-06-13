@@ -31,6 +31,10 @@ Tier 1 plus:
 
 Non-blank, non-comment lines of the primary contract file per bundle. OpenZeppelin dependencies, project interfaces, and the deploy-time dependency copies inside each bundle are excluded from the counts (they are present in `contracts/` for compilation completeness).
 
+## Deployed vs source
+
+Where deployed bytecode differs from the current source (three standing divergences, each with a mitigation and an operating rule), see [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md). Read it before triaging any finding marked FIXED in Kerne's internal documents: FIXED means fixed in source, and that file is the canonical record of what is and is not live on chain.
+
 ## Out of scope
 
 - The off-chain hedging engine, risk engine, and operational tooling (Python, not smart contracts).
