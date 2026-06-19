@@ -25,14 +25,16 @@
       "explorer": "https://basescan.org/address/0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4"
     },
     "KUSDPSM": {
-      "address": "0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc",
-      "type": "Peg Stability Module (USDC <> kUSD)",
-      "explorer": "https://basescan.org/address/0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc"
+      "address": "0x07eBb486e11BD217e6085eb5ab663e4517595993",
+      "type": "Peg Stability Module v3 (USDC -> kUSD mint; holds kUSD MINTER_ROLE)",
+      "note": "Live mint PSM deployed in the 2026-06-16 ceremony. The prior PSM 0xFf3025ec...5Fbc had MINTER_ROLE revoked and is retained only as the kUSD->USDC redeem reserve (see retired.KUSDPSM_v1_redeemReserve).",
+      "explorer": "https://basescan.org/address/0x07eBb486e11BD217e6085eb5ab663e4517595993"
     },
     "KerneVault": {
-      "address": "0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC",
-      "type": "Collateral vault (ERC-4626)",
-      "explorer": "https://basescan.org/address/0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC"
+      "address": "0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B",
+      "type": "Collateral vault v2 (ERC-4626; holds kUSD MINTER_ROLE)",
+      "note": "Live deposit/mint vault deployed in the 2026-06-16 ceremony. Supersedes v1 0x8005bc7A...F2AC (retired; MINTER_ROLE revoked), which the Proof of Reserves still attests until reserves migrate. Public WETH deposits intentionally closed pre-launch.",
+      "explorer": "https://basescan.org/address/0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B"
     },
     "KERNE": {
       "address": "0x230f3a63E8413D42bEe9103b98a204030206186c",
@@ -81,9 +83,12 @@
     }
   },
   "retired": {
-    "_comment": "Superseded deployments, kept for historical reconciliation. Do not use.",
+    "_comment": "Superseded deployments, kept for historical reconciliation. Do not use for minting.",
     "kUSD_v1": "0x257579db2702BAeeBFAC5c19d354f2FF39831299",
-    "KERNE_v1": "0xfEA3D217F5f2304C8551dc9F5B5169F2c2d87340"
+    "KERNE_v1": "0xfEA3D217F5f2304C8551dc9F5B5169F2c2d87340",
+    "KerneVault_v1": "0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC",
+    "KUSDPSM_v1_redeemReserve": "0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc",
+    "_redeemReserveNote": "KUSDPSM_v1 had MINTER_ROLE revoked in the 2026-06-16 ceremony; it no longer mints but is retained as the kUSD->USDC redeem reserve backing residual kUSD. KerneVault_v1 is the retired vault the Proof of Reserves currently attests."
   },
   "notes": "Live state (TVL, kUSD supply, role grants, peg) is authoritative on-chain. Verify any value with the cast calls in HOW_TO_VERIFY_KERNE.md or run scripts/verify_public_endpoints.sh. Source-vs-deployed drift for contracts with in-development fixes is disclosed in the gaps array of https://kerne.fi/api/risk-status."
 }

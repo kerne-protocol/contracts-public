@@ -2,6 +2,8 @@
 
 Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neutral synthetic dollar on Base mainnet (chain 8453). This repository exists so that external auditors, allocators, integrators, and journalists can read the deployment registry, run the live-protocol verification script, and check Kerne's published claims against on-chain state, without needing access to any private repo or any Kerne-controlled infrastructure.
 
+> **2026-06-16 ceremony note.** The vault and mint PSM were redeployed and kUSD `MINTER_ROLE` was rerouted after this mirror's verification snapshot (2026-06-11/12). The **live** mint path is now **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** and **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** (both hold kUSD `MINTER_ROLE` and are source-verified on BaseScan and Sourcify, 2026-06-17). The KUSDPSM `0xFf3025ec...5Fbc` and KerneVault `0x8005bc7A...F2AC` rows below are the **pre-ceremony** deployment: the old PSM had `MINTER_ROLE` revoked and is retained only as the kUSD-to-USDC redeem reserve, and the v1 vault is retired (still the vault the Proof of Reserves attests until reserves migrate). The canonical live registry is [`deployments/8453.json`](deployments/8453.json). The `contracts/` source bundles below predate the ceremony; a refreshed mirror for v2/v3 lands at the next verification pass (read the live v2/v3 verified source on BaseScan/Sourcify in the meantime).
+
 ## What this repo is
 
 - **`deployments/8453.json`** — the canonical address registry: every deployed contract, its address, type, and explorer link.
@@ -12,14 +14,16 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 
 ## Where the contract source is
 
-12 of the 14 contracts tracked here (the 13 active contracts in the registry plus the retired KERNE v1 governance token) are source-verified on both BaseScan and Sourcify. Per-contract status, checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles):
+Every contract in the table below is source-verified on both BaseScan and Sourcify except KerneStaking and KerneFlashArbBot (disclosed below). Per-contract status checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles). The live KUSDPSM v3 and KerneVault v2 (deployed in the 2026-06-16 ceremony) were source-verified on BaseScan and Sourcify 2026-06-17:
 
 | Contract | Address | BaseScan | Sourcify |
 |---|---|---|---|
 | kUSD | `0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3` | Verified | Verified (match) |
 | skUSD | `0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4` | Verified | Verified (match) |
-| KUSDPSM | `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` | Verified | Verified (exact match) |
-| KerneVault | `0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC` | Verified | Verified (match) |
+| KUSDPSM v3 (live mint path) | `0x07eBb486e11BD217e6085eb5ab663e4517595993` | Verified | Verified |
+| KUSDPSM (v1, redeem reserve) | `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` | Verified | Verified (exact match) |
+| KerneVault v2 (live) | `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B` | Verified | Verified |
+| KerneVault (v1, retired) | `0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC` | Verified | Verified (match) |
 | KERNE (v2) | `0x230f3a63E8413D42bEe9103b98a204030206186c` | Verified | Verified (match) |
 | KERNE (v1, retired) | `0xfEA3D217F5f2304C8551dc9F5B5169F2c2d87340` | Verified | Verified (match) |
 | esKERNE | `0x29c1d396A35aB75a8Bb8dC3949f98edFa5f25b34` | Verified | Verified (exact match) |
@@ -69,9 +73,9 @@ Exit code 0 means every documented public endpoint matched its contract. Exit co
 ## Verify a deployed contract's bytecode
 
 ```bash
-# Example: KerneVault. Compare the explorer-verified source's compiled bytecode
-# against the on-chain runtime bytecode.
-cast code 0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC --rpc-url https://mainnet.base.org
+# Example: KerneVault v2 (the live vault). Compare the explorer-verified source's
+# compiled bytecode against the on-chain runtime bytecode.
+cast code 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B --rpc-url https://mainnet.base.org
 ```
 
 Cross-check the verified source and verification status on BaseScan (`#code` tab) or Sourcify for the address. Known source-vs-deployed drift (for contracts with in-development fixes awaiting a redeploy) is disclosed in the `gaps` array of [`kerne.fi/api/risk-status`](https://kerne.fi/api/risk-status).

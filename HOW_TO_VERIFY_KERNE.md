@@ -1,7 +1,9 @@
 # How to Verify Kerne Yourself
 
-**Last updated:** 2026-04-25
+**Last updated:** 2026-06-19
 **Audience:** Auditors, allocators, journalists, integrators, researchers, anyone wanting to verify Kerne Protocol's published claims directly against the live system without trusting Kerne's own infrastructure.
+
+> **2026-06-16 ceremony note.** The vault and mint PSM were redeployed and kUSD `MINTER_ROLE` was rerouted. The live mint path is now **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** and **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** (both hold `MINTER_ROLE`). The old PSM `0xFf3025ec...5Fbc` had `MINTER_ROLE` revoked and is retained only as the kUSD-to-USDC redeem reserve; the v1 vault `0x8005bc7A...F2AC` is the retired/legacy vault the Proof of Reserves currently attests.
 
 This document is the canonical how-to. Every claim Kerne publishes about itself can be cross-checked from outside Kerne's tooling using public RPCs, public HTTPS endpoints, and standard CLI utilities. If you find a divergence between something Kerne claims and what these checks return, that is a bug in the protocol's transparency surface and we want to know about it (kerne.systems@protonmail.com, see `kerne.fi/security`).
 
@@ -39,7 +41,10 @@ Kerne publishes a four-bucket composition of vault collateral at `/api/por`. Eac
 # What Kerne reports (aggregate)
 curl -s https://kerne.fi/api/por | jq '.reserves.vault'
 
-# Each bucket, read directly from the contract
+# Each bucket, read directly from the contract.
+# NOTE: this is the legacy v1 vault the Proof of Reserves currently attests; it is
+# the address /api/por reads, so these calls must match that endpoint. The live
+# deposit/mint vault is KerneVault v2 (0x8ccc56B5...292B), holding kUSD MINTER_ROLE.
 VAULT=0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC
 RPC=https://mainnet.base.org
 
@@ -105,10 +110,10 @@ The `gaps` array names every selector that reverts on the deployed bytecode. If 
 
 ### 4. PSM mint readiness
 
-Kerne's PSM at `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` accepts USDC and mints kUSD. The 10 readiness gates are public at `/api/psm-status`. Any caller can verify each gate independently.
+Kerne's live mint PSM (KUSDPSM v3) at `0x07eBb486e11BD217e6085eb5ab663e4517595993` accepts USDC and mints kUSD. It holds kUSD `MINTER_ROLE`, and the readiness gates are public at `/api/psm-status`. Any caller can verify each gate independently.
 
 ```bash
-PSM=0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc
+PSM=0x07eBb486e11BD217e6085eb5ab663e4517595993
 KUSD=0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3
 USDC=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 RPC=https://mainnet.base.org
@@ -124,13 +129,15 @@ cast call $KUSD "hasRole(bytes32,address)(bool)" \
 
 Compare against `curl -s https://app.kerne.fi/api/psm-status | jq .gates`. Discrepancy = bug.
 
+The earlier KUSDPSM at `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` had `MINTER_ROLE` revoked in the 2026-06-16 ceremony and is retained only as the kUSD-to-USDC redeem reserve, so `hasRole(MINTER_ROLE, oldPSM)` returns `false` by design and a mint call against it reverts. Use the v3 address above for the mint-path checks.
+
 ### 5. Multisig governance
 
 The 2-of-3 Safe at `0x52d3E450bA6c299B1B07298F1E87DD74732D4877` holds `DEFAULT_ADMIN_ROLE` on every Kerne contract. You can verify each role grant directly.
 
 ```bash
 SAFE=0x52d3E450bA6c299B1B07298F1E87DD74732D4877
-VAULT=0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC
+VAULT=0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B   # KerneVault v2 (live)
 RPC=https://mainnet.base.org
 
 # DEFAULT_ADMIN_ROLE is 0x00...00 (32 zero bytes)
@@ -164,15 +171,15 @@ The deployment registry (`deployments/8453.json`) and this verification tooling 
 # Treasury v2, Insurance Fund v2, skUSD):
 #   https://repo.sourcify.dev/contracts/full_match/8453/<address>/
 
-# Confirm the on-chain runtime bytecode for yourself:
-cast code 0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC --rpc-url https://mainnet.base.org
+# Confirm the on-chain runtime bytecode for yourself (KerneVault v2, the live vault):
+cast code 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B --rpc-url https://mainnet.base.org
 ```
 
 A full forge-testable source mirror (clone + `forge test` + local bytecode diff) will be added to this repository at the next contract redeploy, when the in-development source and the deployed bytecode are realigned. Known source-vs-deployed drift in the interim is disclosed in the `gaps` array of `kerne.fi/api/risk-status`. The extensive Foundry suite (900+ Solidity tests) plus the Python threshold-drift suite run in Kerne's CI on every push.
 
 ### 8. Audit posture
 
-Kerne does not yet have a published external audit. The bug-bounty page at `kerne.fi/security` is live (RFC 9116 `security.txt` at `kerne.fi/.well-known/security.txt`). A Code4rena public-goods contest application is in flight; status will be reflected in the `kerne-protocol/contracts-public/audits/` directory once it lands.
+Kerne does not yet have a published external audit. An external smart-contract audit with Hexens is underway (scope: kUSD, skUSD, KUSDPSM, KerneVault); no report has been published yet. The bug-bounty page at `kerne.fi/security` is live (RFC 9116 `security.txt` at `kerne.fi/.well-known/security.txt`). External reports will be published in the `kerne-protocol/contracts-public/audits/` directory once they land.
 
 If you find a vulnerability, use the disclosure path on `kerne.fi/security`. If you find a transparency or claims bug, the same address works.
 
