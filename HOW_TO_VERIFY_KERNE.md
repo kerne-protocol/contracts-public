@@ -60,24 +60,29 @@ The full policy (including approaches considered and rejected, e.g. inflated `of
 
 ### 2. Live APY methodology
 
-Kerne publishes the displayed APY at `/api/apy`. The methodology field names every input and every deduction. You can replicate the formula yourself using free public data sources.
+Kerne publishes the displayed APY at `/api/apy`. The canonical endpoint `app.kerne.fi/api/apy` (which `kerne.fi/api/apy` proxies) carries a `methodology` string and a `sources` object that name every input, every deduction, and the **leverage the strategy is running this cycle**. You can replicate the whole computation yourself from free public data sources.
 
 ```bash
-curl -s https://kerne.fi/api/apy | jq '.methodology, .sources'
+# Methodology string + every numeric input/output, including the live leverage:
+curl -s https://app.kerne.fi/api/apy | jq '.methodology, .sources'
+
+# The displayed number kerne.fi serves to the landing page:
+curl -s https://kerne.fi/api/apy | jq '{expectedAPY, stakingYield, avgAnnualFunding}'
 ```
 
-Live formula (as of 2026-04 phase):
+Live formula:
 
 ```
-grossAPY       = LEVERAGE × (liveStakingAPR + liveFundingAPR)
+leverage       = sources.leverage          # read live; set by the strategy each cycle, NOT a hardcoded constant
+grossAPY       = leverage × (liveStakingAPR + liveFundingAPR)
 strategyNet    = grossAPY × (1 − STRATEGY_COST_FRACTION)
 afterInsurance = strategyNet × (1 − INSURANCE_ALLOCATION_DEFAULT)
 userAPY        = afterInsurance × (1 − PROTOCOL_FEE_GENESIS)
 ```
 
-Constants:
+Terms:
 
-- `LEVERAGE = 3.0`
+- `leverage` is **published live in `sources.leverage`; this document does not assume a value, read the one the engine is actually running.** The strategy's design leverage is dynamic and funding-linked (target `clamp(1.5 + fundingAPR × 10, 1.5, 12.0)`, mirroring the hedge engine `bot/engine.py`: `MIN_LEVERAGE = 1.5`, `MAX_LEVERAGE = 12.0`), with 3.0 the ceiling it targets in a healthy bull-funding regime. Use whatever `sources.leverage` reports at the moment you check; do not hardcode 3.0 or any other constant.
 - `STRATEGY_COST_FRACTION = 0.2232` (trading 6.08 + slippage 6.84 + gas 2.28 + margin 7.12 = 22.32%)
 - `INSURANCE_ALLOCATION_DEFAULT = 0.10` (Dynamic Insurance Fund default; range 500-2500 bps)
 - `PROTOCOL_FEE_GENESIS = 0.00` (Genesis phase, TVL < $100k)
@@ -92,10 +97,11 @@ Reproduce:
 ```bash
 LIDO=$(curl -s https://eth-api.lido.fi/v1/protocol/steth/apr/sma | jq -r '.data.smaApr')
 echo "Lido SMA APR: $LIDO%"
-# Pull HL 180d window, annualize, plug into the formula above.
+# Pull the HL 180d funding window, take the mean, annualize (mean × 24 × 365).
+# Read leverage from sources.leverage; the engine's dynamic target is min(12, max(1.5, 1.5 + fundingAPR × 10)).
 ```
 
-If your computed `userAPY` differs from `/api/apy.expectedAPYPct` by more than 0.5% on the same day, that is a methodology bug.
+Plug in the live leverage from `sources.leverage` rather than a hardcoded constant. If your computed `userAPY` differs from the `expectedAPY` on `app.kerne.fi/api/apy` by more than 0.5% on the same inputs, that is a methodology bug.
 
 ### 3. Risk triggers and exit policy
 
