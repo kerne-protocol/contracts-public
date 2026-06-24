@@ -26,6 +26,6 @@ Out of scope:
 
 ## Known posture and caveats
 
-- **Pre-audit.** The protocol has internal review and an extensive test suite (900+ Solidity tests plus Python and TypeScript suites), but no published external audit at the time of this commit. An audit-firm engagement is underway; reports will be published in [`audits/`](audits/) as they land.
+- **Pre-audit.** The protocol has internal review and an extensive test suite (900+ Solidity tests plus Python and TypeScript suites), but no published external audit at the time of this commit. Hexens has been selected for Kerne's first external audit, but as of 2026-06-24 the engagement has not yet started; reports will be published in [`audits/`](audits/) as they land.
 - **Source-vs-deployed drift.** Several contracts have in-development fixes that are written and tested but not yet deployed (they ship at the next redeploy ceremony, which requires the 2-of-3 Safe). Drift between source and deployed bytecode is disclosed in the `gaps` array of [`kerne.fi/api/risk-status`](https://kerne.fi/api/risk-status). Read the deployed, explorer-verified source for the bytecode that is actually live.
 - **Admin custody.** On-chain admin actions are gated by a 2-of-3 Gnosis Safe (`0x52d3E450bA6c299B1B07298F1E87DD74732D4877`). That protection is exactly as strong as the three signers' operational security.
