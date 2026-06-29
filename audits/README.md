@@ -4,9 +4,13 @@ This directory publishes external audit reports as they land. Each report is com
 
 ## Current status: pre-audit
 
-As of the most recent commit, there is no published external audit and no audit firm is engaged yet. An external engagement is planned before the public vault launch; this README and directory will be updated when a firm is engaged and again when a report lands. Internal adversarial audit reports are published at [kerne.fi/security/audits](https://kerne.fi/security/audits).
+As of the most recent commit, there is no published external audit. Hexens has been selected for Kerne's first external smart-contract audit (scope: kUSD, skUSD, KUSDPSM, KerneVault); as of 2026-06-24 the engagement has not yet started and no report has been published. This README and directory will be updated when the engagement starts and again when a report lands. Internal adversarial audit reports are published at [kerne.fi/security/audits](https://kerne.fi/security/audits).
 
 The protocol's public bug bounty is live (see [`../SECURITY.md`](../SECURITY.md) and [kerne.fi/security](https://kerne.fi/security)).
+
+## Independent researcher review, June 2026
+
+Separate from the firm engagement above, a three-person independent security research team reviewed the deployed core contracts on their own initiative in June 2026 and submitted eight written findings. The anonymized summary and Kerne's full per-finding response are in [`INDEPENDENT_REVIEW_2026-06.md`](INDEPENDENT_REVIEW_2026-06.md). None of the eight is exploitable on the live deployment: four duplicate issues Kerne had already found and fixed, three are false positives against the deployed code, and one is a valid, currently-inert pre-launch item now fixed in source. A researcher-initiated review is not a firm audit, and the firm engagement above is still the item this directory is waiting on.
 
 Internal posture:
 
