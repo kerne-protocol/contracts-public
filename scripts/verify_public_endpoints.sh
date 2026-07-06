@@ -223,11 +223,11 @@ check_endpoint "$KERNE_ORIGIN/api/risk-status" '.overall // "MISSING"' "kerne.fi
 check_endpoint "$KERNE_ORIGIN/api/risk-status" '.gaps | type' "kerne.fi /api/risk-status gaps array present"
 check_endpoint "$KERNE_ORIGIN/api/risk-status" '.triggers.onChain | length' "kerne.fi /api/risk-status onChain trigger count"
 
-# /api/apy — user-facing skUSD APY computed live. Methodology must include the
-# 22.32% strategy cost language so any change to the formula is visible.
+# /api/apy — user-facing skUSD APY computed live. kerne.fi/api/apy is a REDUCED
+# proxy: it serves the displayed number (expectedAPYPct) but strips `methodology`
+# and the `sources` object. Those live on the canonical app.kerne.fi/api/apy and
+# are asserted (genuine presence, no fallback) in the terminal-app block below.
 check_endpoint "$KERNE_ORIGIN/api/apy" '.expectedAPYPct // "MISSING"' "kerne.fi /api/apy expectedAPYPct"
-check_endpoint "$KERNE_ORIGIN/api/apy" '.methodology // "MISSING"' "kerne.fi /api/apy methodology"
-check_endpoint "$KERNE_ORIGIN/api/apy" '.sources.fundingWindowDays // "MISSING"' "kerne.fi /api/apy fundingWindowDays"
 
 # /api/stats — TVL + APY summary used by hero / aggregator scrapers.
 check_endpoint "$KERNE_ORIGIN/api/stats" '.tvl // "MISSING"' "kerne.fi /api/stats tvl"
@@ -262,10 +262,13 @@ check_endpoint "$APP_ORIGIN/api/health" '.status // "ok"' "app.kerne.fi /api/hea
 check_endpoint "$APP_ORIGIN/api/por" '.reserves.vault.composition.offChainAssets.eth // "MISSING"' "app.kerne.fi /api/por composition.offChainAssets"
 check_endpoint "$APP_ORIGIN/api/por" '.reserves.vault.composition.l1Assets.eth // "MISSING"' "app.kerne.fi /api/por composition.l1Assets"
 
-# /api/apy mirror on terminal — fed by the same apy-engine.ts that the chart
-# uses, so a divergence here is the canary for the hero number drifting.
+# /api/apy mirror on terminal — the CANONICAL endpoint (kerne.fi proxies it).
+# Carries methodology + the sources object (both stripped from the kerne.fi
+# proxy), so assert them HERE with genuine presence checks (no // "MISSING"
+# fallback): an absent field FAILs instead of logging a vacuous pass.
 check_endpoint "$APP_ORIGIN/api/apy" '.expectedAPYPct // "MISSING"' "app.kerne.fi /api/apy expectedAPYPct"
-check_endpoint "$APP_ORIGIN/api/apy" '.methodology // "MISSING"' "app.kerne.fi /api/apy methodology"
+check_endpoint "$APP_ORIGIN/api/apy" '.methodology' "app.kerne.fi /api/apy methodology (present)"
+check_endpoint "$APP_ORIGIN/api/apy" '.sources.fundingWindowDays' "app.kerne.fi /api/apy sources.fundingWindowDays (present)"
 
 # /api/psm-status — first-mint readiness. Single most-watched gate before
 # the first USDC->kUSD swap lands.
