@@ -3,13 +3,15 @@
 For security firms scoping a review of Kerne Protocol. Generated 2026-06-12 from the verified source mirror in [`contracts/`](../contracts/README.md); every file below is bytecode-matched to its deployed address on Base mainnet (chain 8453).
 
 > **2026-06-16 ceremony note.** KUSDPSM and KerneVault were redeployed after this scope was generated. The live, audit-relevant addresses are now **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** and **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** (both hold kUSD `MINTER_ROLE`, source-verified on BaseScan/Sourcify 2026-06-17), reflected in the table below. The pre-ceremony deployment (old PSM `0xFf3025ec...5Fbc`, MINTER revoked, now redeem reserve; v1 vault `0x8005bc7A...F2AC`, retired) is recorded under `retired` in [`deployments/8453.json`](../deployments/8453.json). The `contracts/` source bundles predate the ceremony; treat the live v2/v3 verified source on BaseScan/Sourcify as authoritative until the mirror is refreshed.
+>
+> **2026-07-03 skUSD redeploy.** The staking vault was additionally redeployed to **skUSD `0x96F5102C15b839757f811A98CEc3725Ac21DfA14`** (from the same verified source, to reset a distorted share-price state), superseding `0xdEd74F7E...09DB4` (retired, recorded under `retired.skUSD_v1`). The address in the Tier 1 table below is the live one; the `contracts/skUSD/` bundle is the same source and refreshes at the next verification pass. Whether the redeploy closes the skUSD divergence in [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md) is part of this audit's scope.
 
 ## Tier 1 — core risk-bearing contracts (deployed), ~960 nSLOC
 
 | Contract | File | Address | nSLOC |
 |---|---|---|---|
 | kUSD | `contracts/kUSD/src/kUSD.sol` | `0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3` | 17 |
-| skUSD | `contracts/skUSD/src/skUSD.sol` | `0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4` | 57 |
+| skUSD (live) | `contracts/skUSD/src/skUSD.sol` | `0x96F5102C15b839757f811A98CEc3725Ac21DfA14` | 57 |
 | KUSDPSM v3 (live) | `contracts/KUSDPSM/src/KUSDPSM.sol` | `0x07eBb486e11BD217e6085eb5ab663e4517595993` | 309 |
 | KerneVault v2 (live) | `contracts/KerneVault/src/KerneVault.sol` | `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B` | 577 |
 

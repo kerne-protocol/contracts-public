@@ -20,9 +20,10 @@
       "explorer": "https://basescan.org/address/0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3"
     },
     "skUSD": {
-      "address": "0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4",
+      "address": "0x96F5102C15b839757f811A98CEc3725Ac21DfA14",
       "type": "Staked kUSD (ERC-4626 yield vault)",
-      "explorer": "https://basescan.org/address/0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4"
+      "note": "Redeployed 2026-07-03 from the prepared skUSD source to reset a distorted share-price accounting state (the prior vault's shares had drifted far from par). Holds the staked kUSD (asset = kUSD 0x5C2EfdF0...0AA3). The prior deployment 0xdEd74F7E...09DB4 is retired (residual dust only) and recorded under retired.skUSD_v1. Source-verified on BaseScan and Sourcify (partial/similar match) 2026-07-04; the contracts/skUSD source bundle refreshes at the next verification pass.",
+      "explorer": "https://basescan.org/address/0x96F5102C15b839757f811A98CEc3725Ac21DfA14"
     },
     "KUSDPSM": {
       "address": "0x07eBb486e11BD217e6085eb5ab663e4517595993",
@@ -88,7 +89,9 @@
     "KERNE_v1": "0xfEA3D217F5f2304C8551dc9F5B5169F2c2d87340",
     "KerneVault_v1": "0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC",
     "KUSDPSM_v1_redeemReserve": "0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc",
-    "_redeemReserveNote": "KUSDPSM_v1 had MINTER_ROLE revoked in the 2026-06-16 ceremony; it no longer mints but is retained as the kUSD->USDC redeem reserve backing residual kUSD. KerneVault_v1 is the retired vault the Proof of Reserves currently attests."
+    "skUSD_v1": "0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4",
+    "_redeemReserveNote": "KUSDPSM_v1 had MINTER_ROLE revoked in the 2026-06-16 ceremony; it no longer mints but is retained as the kUSD->USDC redeem reserve backing residual kUSD. KerneVault_v1 is the retired vault the Proof of Reserves currently attests.",
+    "_skUSDNote": "skUSD_v1 (0xdEd74F7E...09DB4, deployed 2026-05-11) was retired 2026-07-03 and superseded by skUSD 0x96F5102C...DfA14: the staking vault was redeployed from the prepared source to reset a distorted share-price accounting state. skUSD_v1 holds only residual dust and must not be used."
   },
   "notes": "Live state (TVL, kUSD supply, role grants, peg) is authoritative on-chain. Verify any value with the cast calls in HOW_TO_VERIFY_KERNE.md or run scripts/verify_public_endpoints.sh. Source-vs-deployed drift for contracts with in-development fixes is disclosed in the gaps array of https://kerne.fi/api/risk-status."
 }

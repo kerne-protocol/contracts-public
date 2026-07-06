@@ -3,6 +3,8 @@
 Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neutral synthetic dollar on Base mainnet (chain 8453). This repository exists so that external auditors, allocators, integrators, and journalists can read the deployment registry, run the live-protocol verification script, and check Kerne's published claims against on-chain state, without needing access to any private repo or any Kerne-controlled infrastructure.
 
 > **2026-06-16 ceremony note.** The vault and mint PSM were redeployed and kUSD `MINTER_ROLE` was rerouted after this mirror's verification snapshot (2026-06-11/12). The **live** mint path is now **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** and **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** (both hold kUSD `MINTER_ROLE` and are source-verified on BaseScan and Sourcify, 2026-06-17). The KUSDPSM `0xFf3025ec...5Fbc` and KerneVault `0x8005bc7A...F2AC` rows below are the **pre-ceremony** deployment: the old PSM had `MINTER_ROLE` revoked and is retained only as the kUSD-to-USDC redeem reserve, and the v1 vault is retired (still the vault the Proof of Reserves attests until reserves migrate). The canonical live registry is [`deployments/8453.json`](deployments/8453.json). The `contracts/` source bundles below predate the ceremony; a refreshed mirror for v2/v3 lands at the next verification pass (read the live v2/v3 verified source on BaseScan/Sourcify in the meantime).
+>
+> **2026-07-03 skUSD redeploy.** The staked-kUSD vault was redeployed from the prepared source to reset a distorted share-price accounting state (the prior vault's shares had drifted far from par). The **live** skUSD is now **`0x96F5102C15b839757f811A98CEc3725Ac21DfA14`** (holds the staked kUSD, asset = kUSD, source-verified on BaseScan/Sourcify as a partial/similar match 2026-07-04). The prior skUSD `0xdEd74F7E...09DB4` is retired (residual dust only) and recorded under `retired.skUSD_v1` in [`deployments/8453.json`](deployments/8453.json). As with the v2/v3 ceremony, the `contracts/skUSD/` source bundle predates this redeploy and refreshes at the next verification pass.
 
 ## What this repo is
 
@@ -19,7 +21,8 @@ Every contract in the table below is source-verified on both BaseScan and Sourci
 | Contract | Address | BaseScan | Sourcify |
 |---|---|---|---|
 | kUSD | `0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3` | Verified | Verified (match) |
-| skUSD | `0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4` | Verified | Verified (match) |
+| skUSD (live) | `0x96F5102C15b839757f811A98CEc3725Ac21DfA14` | Verified (similar match) | Verified (partial) |
+| skUSD (v1, retired) | `0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4` | Verified | Verified (match) |
 | KUSDPSM v3 (live mint path) | `0x07eBb486e11BD217e6085eb5ab663e4517595993` | Verified | Verified |
 | KUSDPSM (v1, redeem reserve) | `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` | Verified | Verified (exact match) |
 | KerneVault v2 (live) | `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B` | Verified | Verified |
