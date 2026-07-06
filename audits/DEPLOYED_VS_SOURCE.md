@@ -15,7 +15,7 @@ The reading rule: when an internal security document marks a finding FIXED, that
 
 ## The three standing divergences
 
-All three contracts are source-verified on BaseScan and Sourcify, so every behavior described here is checkable against the deployed code itself.
+All three contracts are source-verified (on Sourcify, and on BaseScan except the live skUSD, which after its 2026-07-03 redeploy is Sourcify-verified with a partial match and pending BaseScan re-publication; its runtime bytecode matches the BaseScan-verified skUSD v1 source), so every behavior described here is checkable against the deployed code itself.
 
 | Contract | Address | Deployed bytecode | Current source | Practical exposure | Operating rule |
 |---|---|---|---|---|---|
