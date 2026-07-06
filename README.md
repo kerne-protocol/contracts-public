@@ -16,7 +16,7 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 
 ## Where the contract source is
 
-Every contract in the table below is source-verified on both BaseScan and Sourcify except KerneStaking and KerneFlashArbBot (disclosed below). Per-contract status checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles). The live KUSDPSM v3 and KerneVault v2 (deployed in the 2026-06-16 ceremony) were source-verified on BaseScan and Sourcify 2026-06-17:
+Every contract in the table below is source-verified on both BaseScan and Sourcify except KerneStaking and KerneFlashArbBot (disclosed below) and the live skUSD (Sourcify-verified partial match; BaseScan re-publication pending after its 2026-07-03 redeploy, see the note above). Per-contract status checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles). The live KUSDPSM v3 and KerneVault v2 (deployed in the 2026-06-16 ceremony) were source-verified on BaseScan and Sourcify 2026-06-17:
 
 | Contract | Address | BaseScan | Sourcify |
 |---|---|---|---|
