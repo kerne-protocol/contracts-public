@@ -12,7 +12,7 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 - **`scripts/verify_public_endpoints.sh`** — a zero-dependency-beyond-`curl`-and-`jq` script any outsider can run against the live protocol to assert that every public endpoint matches its published contract. Returns exit code 0 when healthy, 1 otherwise. The same script runs on Kerne's CI hourly.
 - **`HOW_TO_VERIFY_KERNE.md`** — the full hostile-reader walkthrough: how to reproduce the APY formula, read the Proof-of-Reserves buckets with `cast call`, check the risk triggers, confirm PSM mint readiness, and verify the 2-of-3 Safe holds admin, all from public RPCs.
 - **`docs/SEED_TVL_POLICY.md`** — the standing policy on seed TVL and off-chain accounting, including approaches considered and explicitly rejected.
-- **`SECURITY.md`**, **`audits/`** — disclosure path and audit posture (pre-audit; reports published here as they land). Auditor scoping reference: [`audits/SCOPE.md`](audits/SCOPE.md). Deployed-vs-source state disclosure (where live bytecode differs from current source, with operating rules): [`audits/DEPLOYED_VS_SOURCE.md`](audits/DEPLOYED_VS_SOURCE.md).
+- **`SECURITY.md`**, **`audits/`** — disclosure path and audit posture (Hexens engaged, fieldwork begins 2026-07-13; reports published here as they land). Auditor scoping reference: [`audits/SCOPE.md`](audits/SCOPE.md). Deployed-vs-source state disclosure (where live bytecode differs from current source, with operating rules): [`audits/DEPLOYED_VS_SOURCE.md`](audits/DEPLOYED_VS_SOURCE.md).
 
 ## Where the contract source is
 
