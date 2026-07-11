@@ -1,5 +1,6 @@
 {
   "_comment": "Kerne Protocol public address registry for Base mainnet (chain 8453). Curated public mirror: contains only on-chain-public facts (contract names, addresses, types, explorer links, verification status). Operational and internal records are kept in Kerne's working repository and are out of scope here.",
+  "lastUpdated": "2026-07-11",
   "chainId": 8453,
   "chainName": "base",
   "nativeToken": "ETH",
@@ -26,10 +27,10 @@
       "explorer": "https://basescan.org/address/0x96F5102C15b839757f811A98CEc3725Ac21DfA14"
     },
     "KUSDPSM": {
-      "address": "0x07eBb486e11BD217e6085eb5ab663e4517595993",
-      "type": "Peg Stability Module v3 (USDC -> kUSD mint; holds kUSD MINTER_ROLE)",
-      "note": "Live mint PSM deployed in the 2026-06-16 ceremony. The prior PSM 0xFf3025ec...5Fbc had MINTER_ROLE revoked and is retained only as the kUSD->USDC redeem reserve (see retired.KUSDPSM_v1_redeemReserve).",
-      "explorer": "https://basescan.org/address/0x07eBb486e11BD217e6085eb5ab663e4517595993"
+      "address": "0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803",
+      "type": "Peg Stability Module (USDC -> kUSD mint; holds kUSD MINTER_ROLE)",
+      "note": "Live mint PSM redeployed 2026-07-10 from the frozen external-audit commit so the deployed bytecode matches the source under audit; configuration mirrors the prior instance. Sourcify exact match (creation + runtime); BaseScan native verification pending. The prior mint PSM 0x07eBb486...5993 (2026-06-16 ceremony) had MINTER_ROLE revoked and is retained temporarily as a kUSD->USDC redeem reserve while its USDC reserve migrates (see retired.KUSDPSM_2026_06_16_redeemReserve). The Proof of Reserves sums all three PSM reserves through the migration window.",
+      "explorer": "https://basescan.org/address/0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803"
     },
     "KerneVault": {
       "address": "0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B",
@@ -89,6 +90,8 @@
     "KERNE_v1": "0xfEA3D217F5f2304C8551dc9F5B5169F2c2d87340",
     "KerneVault_v1": "0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC",
     "KUSDPSM_v1_redeemReserve": "0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc",
+    "KUSDPSM_2026_06_16_redeemReserve": "0x07eBb486e11BD217e6085eb5ab663e4517595993",
+    "_kusdpsm20260616Note": "The 2026-06-16 mint PSM had MINTER_ROLE revoked when the 2026-07-10 redeploy went live (Safe-executed grant/revoke); it no longer mints. It is retained temporarily as a kUSD->USDC redeem reserve while its USDC reserve migrates to the live PSM, and its reserve stays in the Proof of Reserves sum until then.",
     "skUSD_v1": "0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4",
     "_redeemReserveNote": "KUSDPSM_v1 had MINTER_ROLE revoked in the 2026-06-16 ceremony; it no longer mints but is retained as the kUSD->USDC redeem reserve backing residual kUSD. KerneVault_v1 is the retired vault the Proof of Reserves currently attests.",
     "_skUSDNote": "skUSD_v1 (0xdEd74F7E...09DB4, deployed 2026-05-11) was retired 2026-07-03 and superseded by skUSD 0x96F5102C...DfA14: the staking vault was redeployed from the prepared source to reset a distorted share-price accounting state. skUSD_v1 holds only residual dust and must not be used."
