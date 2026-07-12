@@ -14,5 +14,8 @@ interface IComplianceHook {
      * @param account The address to check.
      * @return bool True if compliant, false otherwise.
      */
-    function isCompliant(address vault, address account) external view returns (bool);
+    function isCompliant(
+        address vault,
+        address account
+    ) external view returns (bool);
 }

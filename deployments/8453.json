@@ -22,7 +22,7 @@
     "skUSD": {
       "address": "0x96F5102C15b839757f811A98CEc3725Ac21DfA14",
       "type": "Staked kUSD (ERC-4626 yield vault)",
-      "note": "Redeployed 2026-07-03 from the prepared skUSD source to reset a distorted share-price accounting state (the prior vault's shares had drifted far from par). Holds the staked kUSD (asset = kUSD 0x5C2EfdF0...0AA3). The prior deployment 0xdEd74F7E...09DB4 is retired (residual dust only) and recorded under retired.skUSD_v1. Sourcify-verified (partial match) 2026-07-04 and source-verified on BaseScan 2026-07-10 (Etherscan v2 standard-json-input; compiler 0.8.24, optimizer disabled, viaIR, cancun). The contracts/skUSD source bundle refreshes at the next verification pass.",
+      "note": "Redeployed 2026-07-03 from the prepared skUSD source to reset a distorted share-price accounting state (the prior vault's shares had drifted far from par). Holds the staked kUSD (asset = kUSD 0x5C2EfdF0...0AA3). The prior deployment 0xdEd74F7E...09DB4 is retired (residual dust only) and recorded under retired.skUSD_v1. Sourcify-verified (partial match) 2026-07-04 and source-verified on BaseScan 2026-07-10 (Etherscan v2 standard-json-input; compiler 0.8.24, optimizer disabled, viaIR, cancun). The contracts/skUSD source bundle was refreshed on 2026-07-11 to mirror this live deployment (verified byte-for-byte against Sourcify).",
       "explorer": "https://basescan.org/address/0x96F5102C15b839757f811A98CEc3725Ac21DfA14"
     },
     "KUSDPSM": {

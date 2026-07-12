@@ -1,6 +1,6 @@
 # Verified source mirror
 
-Each directory here is the **explorer-verified source bundle for one deployed contract**, mirrored verbatim from [Sourcify](https://sourcify.dev) (`sourcify.dev/server/files/any/8453/<address>`) on 2026-06-12. These are the exact sources that match the deployed bytecode on Base mainnet, per address.
+Each directory here is the **explorer-verified source bundle for one deployed contract**, mirrored verbatim from [Sourcify](https://sourcify.dev). Most bundles are the 2026-06-12 snapshot; the skUSD, KUSDPSM (v3), and KerneVault (v2) bundles were refreshed on 2026-07-11 to mirror their live redeployed addresses (Sourcify v2 API, `sourcify.dev/server/v2/contract/8453/<address>`). These are the exact sources that match the deployed bytecode on Base mainnet, per address.
 
 ## Layout
 
@@ -27,7 +27,7 @@ Scoping reference with per-contract nSLOC: [`audits/SCOPE.md`](../audits/SCOPE.m
 To reproduce any bundle from the source of truth:
 
 ```bash
-curl -s https://sourcify.dev/server/files/any/8453/<address> | jq -r '.files[].path'
+curl -s "https://sourcify.dev/server/v2/contract/8453/<address>?fields=sources" | jq -r '.sources | keys[]'
 ```
 
 Addresses are in [`deployments/8453.json`](../deployments/8453.json).

@@ -2,9 +2,9 @@
 
 For security firms scoping a review of Kerne Protocol. Generated 2026-06-12 from the verified source mirror in [`contracts/`](../contracts/README.md); every file below is bytecode-matched to its deployed address on Base mainnet (chain 8453).
 
-> **2026-06-16 ceremony note.** KUSDPSM and KerneVault were redeployed after this scope was generated. The live, audit-relevant addresses are now **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** and **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** (both hold kUSD `MINTER_ROLE`, source-verified on BaseScan/Sourcify 2026-06-17), reflected in the table below. The pre-ceremony deployment (old PSM `0xFf3025ec...5Fbc`, MINTER revoked, now redeem reserve; v1 vault `0x8005bc7A...F2AC`, retired) is recorded under `retired` in [`deployments/8453.json`](../deployments/8453.json). The `contracts/` source bundles predate the ceremony; treat the live v2/v3 verified source on BaseScan/Sourcify as authoritative until the mirror is refreshed.
+> **2026-06-16 ceremony note.** KUSDPSM and KerneVault were redeployed after this scope was generated. The live, audit-relevant addresses are now **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** and **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** (both hold kUSD `MINTER_ROLE`, source-verified on BaseScan/Sourcify 2026-06-17), reflected in the table below. The pre-ceremony deployment (old PSM `0xFf3025ec...5Fbc`, MINTER revoked, now redeem reserve; v1 vault `0x8005bc7A...F2AC`, retired) is recorded under `retired` in [`deployments/8453.json`](../deployments/8453.json). The `contracts/KUSDPSM/` and `contracts/KerneVault/` source bundles were refreshed on 2026-07-11 to mirror these live v3/v2 deployments (verified byte-for-byte against Sourcify), so the file paths in the table below now point at the live v3/v2 source.
 >
-> **2026-07-03 skUSD redeploy.** The staking vault was additionally redeployed to **skUSD `0x96F5102C15b839757f811A98CEc3725Ac21DfA14`** (from the same verified source, to reset a distorted share-price state), superseding `0xdEd74F7E...09DB4` (retired, recorded under `retired.skUSD_v1`). The address in the Tier 1 table below is the live one; the `contracts/skUSD/` bundle is the same source and refreshes at the next verification pass. Whether the redeploy closes the skUSD divergence in [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md) is part of this audit's scope.
+> **2026-07-03 skUSD redeploy.** The staking vault was additionally redeployed to **skUSD `0x96F5102C15b839757f811A98CEc3725Ac21DfA14`** (from the prepared skUSD source, which also reset a distorted share-price state), superseding `0xdEd74F7E...09DB4` (retired, recorded under `retired.skUSD_v1`). The address in the Tier 1 table below is the live one, and the `contracts/skUSD/` bundle was refreshed on 2026-07-11 to mirror it (verified byte-for-byte against Sourcify). The live source implements the yield-vesting defense (`yieldVestingPeriod`, with `lockedYield()` excluded from `totalAssets()`); see [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md). skUSD is in this audit's scope.
 
 ## Tier 1 — core risk-bearing contracts (deployed), ~960 nSLOC
 
@@ -37,7 +37,7 @@ Non-blank, non-comment lines of the primary contract file per bundle. OpenZeppel
 
 ## Deployed vs source
 
-Where deployed bytecode differs from the current source (three standing divergences, each with a mitigation and an operating rule), see [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md). Read it before triaging any finding marked FIXED in Kerne's internal documents: FIXED means fixed in source, and that file is the canonical record of what is and is not live on chain.
+Where deployed bytecode differs from the current source (two standing divergences, each with a mitigation and an operating rule), see [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md). Read it before triaging any finding marked FIXED in Kerne's internal documents: FIXED means fixed in source, and that file is the canonical record of what is and is not live on chain.
 
 ## Out of scope
 
