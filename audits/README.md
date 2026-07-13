@@ -2,9 +2,9 @@
 
 This directory publishes external audit reports as they land. Each report is committed verbatim alongside the source version audited (commit hash), the date issued, and the protocol's response noting which findings were fixed and which were risk-accepted.
 
-## Current status: audit engaged (fieldwork begins 2026-07-13)
+## Current status: audit underway (fieldwork began 2026-07-13)
 
-As of the most recent commit, there is no published external audit. Kerne has engaged Hexens for its first external smart-contract audit (scope: kUSD, skUSD, KUSDPSM, KerneVault); fieldwork begins 2026-07-13 and no report has been published yet. This README and directory will be updated when the engagement starts and again when a report lands. Internal adversarial audit reports are published at [kerne.fi/security/audits](https://kerne.fi/security/audits).
+As of the most recent commit, there is no published external audit. Kerne has engaged Hexens for its first external smart-contract audit (scope: kUSD, skUSD, KUSDPSM, KerneVault); fieldwork has been underway since 2026-07-13 and no report has been published yet. This README and directory will be updated while fieldwork runs and again when a report lands. Internal adversarial audit reports are published at [kerne.fi/security/audits](https://kerne.fi/security/audits).
 
 The protocol's public bug bounty is live (see [`../SECURITY.md`](../SECURITY.md) and [kerne.fi/security](https://kerne.fi/security)).
 

@@ -185,7 +185,7 @@ A full forge-testable source mirror (clone + `forge test` + local bytecode diff)
 
 ### 8. Audit posture
 
-Kerne does not yet have a published external audit. Kerne has engaged Hexens for its first external smart-contract audit (scope: kUSD, skUSD, KUSDPSM, KerneVault); fieldwork begins 2026-07-13 and no report has been published yet. The bug-bounty page at `kerne.fi/security` is live (RFC 9116 `security.txt` at `kerne.fi/.well-known/security.txt`). External reports will be published in the `kerne-protocol/contracts-public/audits/` directory once they land.
+Kerne does not yet have a published external audit. Kerne has engaged Hexens for its first external smart-contract audit (scope: kUSD, skUSD, KUSDPSM, KerneVault); fieldwork has been underway since 2026-07-13 and no report has been published yet. The bug-bounty page at `kerne.fi/security` is live (RFC 9116 `security.txt` at `kerne.fi/.well-known/security.txt`). External reports will be published in the `kerne-protocol/contracts-public/audits/` directory once they land.
 
 If you find a vulnerability, use the disclosure path on `kerne.fi/security`. If you find a transparency or claims bug, the same address works.
 
