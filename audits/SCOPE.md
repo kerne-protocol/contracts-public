@@ -1,10 +1,12 @@
 # Audit scope reference
 
-For security firms scoping a review of Kerne Protocol. Generated 2026-06-12 from the verified source mirror in [`contracts/`](../contracts/README.md); every file below is bytecode-matched to its deployed address on Base mainnet (chain 8453).
+For security firms scoping a review of Kerne Protocol. Generated 2026-06-12 from the verified source mirror in [`contracts/`](../contracts/README.md); every file below that names a `contracts/` path is bytecode-matched to its deployed address on Base mainnet (chain 8453). Addresses deployed after the mirror snapshot are called out in the notes below and should be read from the explorer.
 
-> **2026-06-16 ceremony note.** KUSDPSM and KerneVault were redeployed after this scope was generated. The live, audit-relevant addresses are now **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** and **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** (both hold kUSD `MINTER_ROLE`, source-verified on BaseScan/Sourcify 2026-06-17), reflected in the table below. The pre-ceremony deployment (old PSM `0xFf3025ec...5Fbc`, MINTER revoked, now redeem reserve; v1 vault `0x8005bc7A...F2AC`, retired) is recorded under `retired` in [`deployments/8453.json`](../deployments/8453.json). The `contracts/KUSDPSM/` and `contracts/KerneVault/` source bundles were refreshed on 2026-07-11 to mirror these live v3/v2 deployments (verified byte-for-byte against Sourcify), so the file paths in the table below now point at the live v3/v2 source.
+> **2026-06-16 ceremony note.** KUSDPSM and KerneVault were redeployed after this scope was generated. That ceremony put **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** and **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** on the mint path (both source-verified on BaseScan/Sourcify 2026-06-17). The pre-ceremony deployment (old PSM `0xFf3025ec...5Fbc`, MINTER revoked, now redeem reserve; v1 vault `0x8005bc7A...F2AC`, retired) is recorded under `retired` in [`deployments/8453.json`](../deployments/8453.json). The `contracts/KUSDPSM/` and `contracts/KerneVault/` source bundles were refreshed on 2026-07-11 to mirror the PSM and vault source (verified byte-for-byte against Sourcify).
 >
 > **2026-07-03 skUSD redeploy.** The staking vault was additionally redeployed to **skUSD `0x96F5102C15b839757f811A98CEc3725Ac21DfA14`** (from the prepared skUSD source, which also reset a distorted share-price state), superseding `0xdEd74F7E...09DB4` (retired, recorded under `retired.skUSD_v1`). The address in the Tier 1 table below is the live one, and the `contracts/skUSD/` bundle was refreshed on 2026-07-11 to mirror it (verified byte-for-byte against Sourcify). The live source implements the yield-vesting defense (`yieldVestingPeriod`, with `lockedYield()` excluded from `totalAssets()`); see [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md). skUSD is in this audit's scope.
+>
+> **2026-07-10 PSM redeploy (current mint path).** The mint PSM was redeployed again. The **live** mint PSM is now **`0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803`**, and kUSD `MINTER_ROLE` was revoked on KUSDPSM v3 `0x07eBb486...5993` the same day. Today `MINTER_ROLE` on kUSD is held by exactly two contracts: **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** and the **live KUSDPSM `0xaBDE1138...9803`**. KUSDPSM v3 `0x07eBb486...5993` is retired from minting and retained redeem-only; its USDC reserve still backs the kUSD minted through it until reserves migrate, so it stays in scope as a reserve-holding contract even though it can no longer mint. Both PSM instances are listed in the Tier 1 table below. The `contracts/KUSDPSM/` bundle in this repo mirrors the retired v3 address, so pull the live PSM's source from BaseScan or Sourcify for `0xaBDE1138...9803` rather than assuming that bundle matches it.
 
 ## Tier 1 — core risk-bearing contracts (deployed), ~960 nSLOC
 
@@ -12,10 +14,11 @@ For security firms scoping a review of Kerne Protocol. Generated 2026-06-12 from
 |---|---|---|---|
 | kUSD | `contracts/kUSD/src/kUSD.sol` | `0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3` | 17 |
 | skUSD (live) | `contracts/skUSD/src/skUSD.sol` | `0x96F5102C15b839757f811A98CEc3725Ac21DfA14` | 57 |
-| KUSDPSM v3 (live) | `contracts/KUSDPSM/src/KUSDPSM.sol` | `0x07eBb486e11BD217e6085eb5ab663e4517595993` | 309 |
+| KUSDPSM (live mint path) | BaseScan/Sourcify verified source for this address (see note above) | `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803` | 309 |
+| KUSDPSM v3 (retired 2026-07-10, redeem-only reserve) | `contracts/KUSDPSM/src/KUSDPSM.sol` | `0x07eBb486e11BD217e6085eb5ab663e4517595993` | (same contract, not counted twice) |
 | KerneVault v2 (live) | `contracts/KerneVault/src/KerneVault.sol` | `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B` | 577 |
 
-Note on "the minter": earlier RFP materials listed a `kUSDMinter` contract in the core scope. `kUSDMinter` is **not deployed** (it is Phase 2/3 leverage infrastructure). All live minting runs through `KUSDPSM` and `KerneVault`, both in Tier 1, so the deployed core scope is these 4 contracts.
+Note on "the minter": earlier RFP materials listed a `kUSDMinter` contract in the core scope. `kUSDMinter` is **not deployed** (it is Phase 2/3 leverage infrastructure). All live minting runs through the live `KUSDPSM` (`0xaBDE1138...9803`) and `KerneVault` v2, both in Tier 1, so the deployed core scope is the Tier 1 contracts above.
 
 ## Tier 2 — full deployed verified surface, ~1,683 nSLOC
 

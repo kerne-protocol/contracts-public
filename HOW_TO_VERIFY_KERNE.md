@@ -1,9 +1,9 @@
 # How to Verify Kerne Yourself
 
-**Last updated:** 2026-06-19
+**Last updated:** 2026-07-20
 **Audience:** Auditors, allocators, journalists, integrators, researchers, anyone wanting to verify Kerne Protocol's published claims directly against the live system without trusting Kerne's own infrastructure.
 
-> **2026-06-16 ceremony note.** The vault and mint PSM were redeployed and kUSD `MINTER_ROLE` was rerouted. The live mint path is now **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** and **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** (both hold `MINTER_ROLE`). The old PSM `0xFf3025ec...5Fbc` had `MINTER_ROLE` revoked and is retained only as the kUSD-to-USDC redeem reserve; the v1 vault `0x8005bc7A...F2AC` is the retired/legacy vault the Proof of Reserves currently attests.
+> **Live mint path (current).** kUSD `MINTER_ROLE` is held today by exactly two contracts: **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** and the **live KUSDPSM `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803`** (redeployed 2026-07-10). `0xaBDE1138...9803` is the address users mint through today. Two earlier PSM instances are retained without minting rights: **KUSDPSM v3 `0x07eBb486e11BD217e6085eb5ab663e4517595993`** (`MINTER_ROLE` revoked 2026-07-10, redeem-only, its USDC reserve still backs the kUSD minted through it until reserves migrate) and **`0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc`** (`MINTER_ROLE` revoked in the 2026-06-16 ceremony, kUSD-to-USDC redeem reserve). The v1 vault `0x8005bc7A...F2AC` is the retired/legacy vault the Proof of Reserves currently attests. Section 4 below gives the `cast call` that proves this rotation for yourself.
 
 This document is the canonical how-to. Every claim Kerne publishes about itself can be cross-checked from outside Kerne's tooling using public RPCs, public HTTPS endpoints, and standard CLI utilities. If you find a divergence between something Kerne claims and what these checks return, that is a bug in the protocol's transparency surface and we want to know about it (kerne.systems@protonmail.com, see `kerne.fi/security`).
 
@@ -116,10 +116,12 @@ The `gaps` array names every selector that reverts on the deployed bytecode. If 
 
 ### 4. PSM mint readiness
 
-Kerne's live mint PSM (KUSDPSM v3) at `0x07eBb486e11BD217e6085eb5ab663e4517595993` accepts USDC and mints kUSD. It holds kUSD `MINTER_ROLE`, and the readiness gates are public at `/api/psm-status`. Any caller can verify each gate independently.
+Kerne's live mint PSM at `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803` (redeployed 2026-07-10) accepts USDC and mints kUSD. It holds kUSD `MINTER_ROLE`, and the readiness gates are public at `/api/psm-status`. Any caller can verify each gate independently.
 
 ```bash
-PSM=0x07eBb486e11BD217e6085eb5ab663e4517595993
+PSM=0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803       # live mint PSM
+OLD_PSM_V3=0x07eBb486e11BD217e6085eb5ab663e4517595993 # retired 2026-07-10, redeem-only
+OLD_PSM_V1=0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc # retired 2026-06-16, redeem reserve
 KUSD=0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3
 USDC=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 RPC=https://mainnet.base.org
@@ -129,13 +131,25 @@ cast call $PSM "paused()(bool)"                --rpc-url $RPC
 cast call $PSM "supportedStables(address)(bool)" $USDC --rpc-url $RPC
 cast call $PSM "stableCaps(address)(uint256)"  $USDC --rpc-url $RPC
 cast call $PSM "currentExposure(address)(uint256)" $USDC --rpc-url $RPC
-cast call $KUSD "hasRole(bytes32,address)(bool)" \
-  $(cast keccak "MINTER_ROLE") $PSM --rpc-url $RPC
 ```
 
 Compare against `curl -s https://app.kerne.fi/api/psm-status | jq .gates`. Discrepancy = bug.
 
-The earlier KUSDPSM at `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` had `MINTER_ROLE` revoked in the 2026-06-16 ceremony and is retained only as the kUSD-to-USDC redeem reserve, so `hasRole(MINTER_ROLE, oldPSM)` returns `false` by design and a mint call against it reverts. Use the v3 address above for the mint-path checks.
+**Key-rotation proof.** The same `hasRole` call, run against all three PSM instances, shows that mint authority moved and that the retired instances cannot mint. Run all four:
+
+```bash
+MINTER=$(cast keccak "MINTER_ROLE")
+
+cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER $PSM        --rpc-url $RPC  # expect true
+cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER $OLD_PSM_V3 --rpc-url $RPC  # expect false
+cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER $OLD_PSM_V1 --rpc-url $RPC  # expect false
+# The only other MINTER_ROLE holder is KerneVault v2:
+cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B --rpc-url $RPC  # expect true
+```
+
+kUSD `MINTER_ROLE` is held today by exactly two contracts: KerneVault v2 and the live PSM above. Both retired PSM instances return `false` by design and a mint call against either reverts. If any of those four reads returns something other than the expected value, that is a bug and we want the report.
+
+KUSDPSM v3 `0x07eBb486...5993` is nonetheless still a live-funds contract: it is retained as a redeem-only reserve, and its USDC balance still backs the kUSD that was minted through it until reserves migrate, which is why `/api/por` sums it into the backing total. Do not read its presence in the reserve total as evidence it can still mint.
 
 ### 5. Multisig governance
 
@@ -185,7 +199,7 @@ A full forge-testable source mirror (clone + `forge test` + local bytecode diff)
 
 ### 8. Audit posture
 
-Kerne does not yet have a published external audit. Kerne has engaged Hexens for its first external smart-contract audit (scope: kUSD, skUSD, KUSDPSM, KerneVault); fieldwork has been underway since 2026-07-13 and no report has been published yet. The bug-bounty page at `kerne.fi/security` is live (RFC 9116 `security.txt` at `kerne.fi/.well-known/security.txt`). External reports will be published in the `kerne-protocol/contracts-public/audits/` directory once they land.
+Kerne does not yet have a published external audit. Kerne has engaged Hexens for its first external smart-contract audit (scope: kUSD, skUSD, KUSDPSM, KerneVault). Fieldwork ran from July 13, 2026 and Hexens delivered its initial report on July 20, 2026, with remediation underway. The report is confidential while remediation runs, the final report is still pending, and the code is not yet through a completed external audit. The bug-bounty page at `kerne.fi/security` is live (RFC 9116 `security.txt` at `kerne.fi/.well-known/security.txt`). External reports will be published in the `kerne-protocol/contracts-public/audits/` directory once they land.
 
 If you find a vulnerability, use the disclosure path on `kerne.fi/security`. If you find a transparency or claims bug, the same address works.
 

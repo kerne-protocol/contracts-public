@@ -2,7 +2,7 @@
 
 For reviewers, allocators, and audit firms. Published 2026-06-29. A plain-language version lives at [kerne.fi/security/audits](https://kerne.fi/security/audits).
 
-In June 2026 a three-person independent security research team, working on their own initiative rather than under a paid engagement, reviewed Kerne's core contracts and sent a set of eight written findings to the protocol's disclosure inbox. This document records what they reviewed, how each finding was assessed against the live deployment, and what we did with it. It is a researcher-initiated review, not a completed third-party firm audit, and it is described as exactly that. The external firm engagement (Hexens, engaged; fieldwork underway since 2026-07-13) is tracked separately in [`README.md`](README.md) and at [kerne.fi/security/audits](https://kerne.fi/security/audits).
+In June 2026 a three-person independent security research team, working on their own initiative rather than under a paid engagement, reviewed Kerne's core contracts and sent a set of eight written findings to the protocol's disclosure inbox. This document records what they reviewed, how each finding was assessed against the live deployment, and what we did with it. It is a researcher-initiated review, not a completed third-party firm audit, and it is described as exactly that. The external firm engagement (Hexens, engaged; initial report received July 20, 2026, remediation underway) is tracked separately in [`README.md`](README.md) and at [kerne.fi/security/audits](https://kerne.fi/security/audits).
 
 We publish this for the same reason we publish [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md): a reader doing diligence should be able to see that independent eyes have looked at the code, read exactly what they found, and read our response, rather than take "it has been reviewed" on faith.
 
@@ -16,9 +16,9 @@ Three independent evidence layers per finding:
 
 1. **Source reading** by separate triage and adversarial-review passes, the second instructed to overturn each ruling rather than confirm it.
 2. **Live invariant proof.** The Foundry invariant suite for the vault: five invariants (solvency, share-price monotonicity, accounting consistency, solvency-ratio consistency, fee sanity), 512 runs by 65,536 calls each, zero reverts.
-3. **Deployed-bytecode provenance.** Both live contracts are source-verified (partial match) on Sourcify and BaseScan, so every behavior described below is checkable against the bytecode that is actually live:
-   - vault `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`
-   - PSM `0x07eBb486e11BD217e6085eb5ab663e4517595993`
+3. **Deployed-bytecode provenance.** Both reviewed contracts are source-verified (partial match) on Sourcify and BaseScan, so every behavior described below is checkable against deployed bytecode:
+   - vault `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B` (KerneVault v2, still the live vault)
+   - PSM `0x07eBb486e11BD217e6085eb5ab663e4517595993` (KUSDPSM v3, the live mint PSM at the time of this review; `MINTER_ROLE` was revoked on it on 2026-07-10 and it is now retained redeem-only. The live mint PSM today is the 2026-07-10 redeploy at `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803`; read that address for current mint-path behavior)
 
 Public Base RPC reads confirm the live vault holds the WETH asset, has `totalSupply` zero, and reports the empty-vault solvency sentinel.
 
