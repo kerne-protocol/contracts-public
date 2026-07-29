@@ -28,11 +28,13 @@ Tier 1 plus:
 |---|---|---|---|
 | KERNE (v2) | `contracts/KERNE/src/KerneTokenV2.sol` | `0x230f3a63E8413D42bEe9103b98a204030206186c` | 95 |
 | esKERNE | `contracts/esKERNE/src/esKERNE.sol` | `0x29c1d396A35aB75a8Bb8dC3949f98edFa5f25b34` | 148 |
-| KerneTreasury | `contracts/KerneTreasury/src/KerneTreasury.sol` | `0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5` | 191 |
+| KerneTreasury v2 (retired 2026-07-13, superseded as fee sink) | `contracts/KerneTreasury/src/KerneTreasury.sol` | `0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5` | 191 |
 | KerneInsuranceFund | `contracts/KerneInsuranceFund/src/KerneInsuranceFund.sol` | `0xE8799FCF327C6D2f78103a3c9308C93592A30403` | 108 |
 | KerneReferral | `contracts/KerneReferral/src/KerneReferral.sol` | `0x1A04AF62baFc84b08b19d2aF7285eD5f8dAe4D9f` | 29 |
 | KerneYieldDistributor | `contracts/KerneYieldDistributor/src/KerneYieldDistributor.sol` | `0x096e38a04B632D28E017f86836225E0956CaD878` | 50 |
 | KerneYieldOracle | `contracts/KerneYieldOracle/src/KerneYieldOracle.sol` | `0x8DE2d5ac5aBc7331a6E1d450a5c021db18599CdB` | 102 |
+
+> **KerneTreasury note (2026-07-28).** The address in the Tier 2 row above is the **retired** treasury v2. The **live** treasury is **v3 `0x5343C41d4FF2B61DAacA9cbC050550C40605B075`** (deployed 2026-06-16), and the live mint PSM `0xaBDE1138...9803` returns it from `treasury()`, so PSM fee sweeps accrue there. v3 has **no published source**: checked 2026-07-28 against BaseScan, the Sourcify v2 API and Blockscout, none of which holds a verification. It is therefore outside the "full deployed verified surface" this tier describes and is excluded from the nSLOC totals; treat it as unverified bytecode. It holds no protocol assets today (0 ETH, 0 WETH, 0 USDC, 0 KERNE) and its `owner()` is the 2-of-3 Safe. The `contracts/KerneTreasury/` bundle mirrors v2, which stays listed because it is the source that is actually published and bytecode-matched. The retired PSM `0x07eBb486...5993` still returns v2 from `treasury()`.
 
 ## nSLOC method
 
@@ -40,7 +42,9 @@ Non-blank, non-comment lines of the primary contract file per bundle. OpenZeppel
 
 ## Deployed vs source
 
-Where deployed bytecode differs from the current source (two standing divergences, each with a mitigation and an operating rule), see [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md). Read it before triaging any finding marked FIXED in Kerne's internal documents: FIXED means fixed in source, and that file is the canonical record of what is and is not live on chain.
+Where deployed bytecode differs from the current source (three standing divergences, each with a mitigation and an operating rule), see [`DEPLOYED_VS_SOURCE.md`](DEPLOYED_VS_SOURCE.md). Read it before triaging any finding marked FIXED in Kerne's internal documents: FIXED means fixed in source, and that file is the canonical record of what is and is not live on chain.
+
+The first of those three rows is the one that matters most for scoping this review: the live KerneVault v2 `0x8ccc56B5...292B` is **not** the audited commit. Its verified source is byte-identical to repository commit `ecc95cf7` (2026-06-15), roughly three weeks before the audited commit `0912c870`, so all ten findings of the Hexens initial report are live on the deployed bytecode, the on-chain deposit gate was never deployed, and **public WETH deposits are open** (`maxDeposit` returns 2^256-1). A 2-of-3 Safe call to `setWhitelistEnabled(true)` is proposed and signed 1 of 2 (nonce 18) and has not executed as of 2026-07-28.
 
 ## Out of scope
 

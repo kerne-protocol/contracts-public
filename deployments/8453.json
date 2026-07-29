@@ -1,6 +1,6 @@
 {
   "_comment": "Kerne Protocol public address registry for Base mainnet (chain 8453). Curated public mirror: contains only on-chain-public facts (contract names, addresses, types, explorer links, verification status). Operational and internal records are kept in Kerne's working repository and are out of scope here.",
-  "lastUpdated": "2026-07-20",
+  "lastUpdated": "2026-07-28",
   "chainId": 8453,
   "chainName": "base",
   "nativeToken": "ETH",
@@ -35,7 +35,7 @@
     "KerneVault": {
       "address": "0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B",
       "type": "Collateral vault v2 (ERC-4626; holds kUSD MINTER_ROLE)",
-      "note": "Live deposit/mint vault deployed in the 2026-06-16 ceremony. Supersedes v1 0x8005bc7A...F2AC (retired; MINTER_ROLE revoked), which the Proof of Reserves still attests until reserves migrate. Public WETH deposits intentionally closed pre-launch.",
+      "note": "Live deposit/mint vault deployed in the 2026-06-16 ceremony. Supersedes v1 0x8005bc7A...F2AC (retired; MINTER_ROLE revoked), which the Proof of Reserves still attests until reserves migrate. DEPOSIT STATE, stated plainly and verified on chain 2026-07-28: public WETH deposits are OPEN. maxDeposit(any address) returns 2^256-1, paused() is false, whitelistEnabled() is false, complianceHook() is the zero address, maxTotalAssets() is 0 (uncapped), and depositsEnabled() reverts because the on-chain deposit gate was written but never deployed. An earlier revision of this file said 'Public WETH deposits intentionally closed pre-launch'; that was false, and the closure it described exists only in the app interface. The live bytecode is also the unremediated pre-audit build: its verified source is byte-identical to repository commit ecc95cf7 (2026-06-15), not to the audited commit 0912c870, so all ten findings of the Hexens initial report are live on it. Closure is proposed and awaiting a second signature: a 2-of-3 Safe transaction calling setWhitelistEnabled(true), safeTxHash 0xf08a3a84f8beb6a5fcc17ebafb1a0732bd3eeebc88cf7f933baad6a56519505c at Safe nonce 18, signed 1 of 2 and NOT executed as of 2026-07-28. Bounding the exposure honestly: the vault holds no user funds, totalSupply() is 0, and no third party has ever held a share. Full disclosure with reproduction commands: https://kerne.fi/security/deployed-vs-source and audits/DEPLOYED_VS_SOURCE.md.",
       "explorer": "https://basescan.org/address/0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B"
     },
     "KERNE": {
@@ -54,9 +54,10 @@
       "explorer": "https://basescan.org/address/0x032Af1631671126A689614c0c957De774b45D582"
     },
     "KerneTreasury": {
-      "address": "0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5",
-      "type": "Protocol treasury (v2)",
-      "explorer": "https://basescan.org/address/0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5"
+      "address": "0x5343C41d4FF2B61DAacA9cbC050550C40605B075",
+      "type": "Protocol treasury (v3, live PSM fee sink)",
+      "note": "Live treasury, deployed 2026-06-16 (block 47462420). The live mint PSM 0xaBDE1138...9803 returns this address from treasury() (repointed by Safe transaction on 2026-07-13), so PSM fee sweeps accrue here. owner() is the 2-of-3 Safe 0x52d3E450...4877 and kerneToken() is the canonical KERNE v2 0x230f3a63...186c. NOT SOURCE-VERIFIED: checked 2026-07-28 on BaseScan (no published source), Sourcify v2 (404) and Blockscout (is_verified null). It is therefore excluded from the verified-surface tables in the root README and audits/SCOPE.md and should be read as unverified bytecode until source is published. It holds no protocol assets today (0 ETH, 0 WETH, 0 USDC, 0 KERNE). Earlier revisions of this file listed the retired v2 0x7c07517A...60d5 here with no retirement note and never named v3; that was wrong and is corrected here. v2 is recorded under retired.KerneTreasury_v2.",
+      "explorer": "https://basescan.org/address/0x5343C41d4FF2B61DAacA9cbC050550C40605B075"
     },
     "KerneInsuranceFund": {
       "address": "0xE8799FCF327C6D2f78103a3c9308C93592A30403",
@@ -93,6 +94,8 @@
     "KUSDPSM_2026_06_16_redeemReserve": "0x07eBb486e11BD217e6085eb5ab663e4517595993",
     "_kusdpsm20260616Note": "The 2026-06-16 mint PSM had MINTER_ROLE revoked when the 2026-07-10 redeploy went live (Safe-executed grant/revoke); it no longer mints, so hasRole(MINTER_ROLE, 0x07eBb486...5993) returns false today. It is retained temporarily as a kUSD->USDC redeem reserve while its USDC reserve migrates to the live PSM, and its reserve stays in the Proof of Reserves sum until then.",
     "skUSD_v1": "0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4",
+    "KerneTreasury_v2": "0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5",
+    "_kerneTreasuryV2Note": "Protocol treasury v2, superseded by v3 0x5343C41d...B075. It is no longer the PSM fee sink: the live mint PSM 0xaBDE1138...9803 was repointed to v3 on 2026-07-13. Its kerneToken() still reads the retired KERNE v1 0xfEA3D217...7340, so it cannot act on the canonical token. It holds no protocol assets and must not be funded or routed value. It remains source-verified on BaseScan and Sourcify (exact match), and the contracts/KerneTreasury/ source bundle in this repo mirrors THIS address, not v3. Reviewer note: the retired PSM 0x07eBb486...5993 still returns v2 from treasury(), which is why this address still appears in on-chain reads of the retired mint path.",
     "_redeemReserveNote": "KUSDPSM_v1 had MINTER_ROLE revoked in the 2026-06-16 ceremony; it no longer mints but is retained as the kUSD->USDC redeem reserve backing residual kUSD. KUSDPSM_v3 (0x07eBb486...5993) was the live mint PSM from the 2026-06-16 ceremony until 2026-07-10, when MINTER_ROLE was revoked and minting moved to 0xaBDE1138...9803; it is retained redeem-only and its USDC reserve still backs the kUSD minted through it until reserves migrate, so hasRole(MINTER_ROLE, 0x07eBb486...5993) returns false today. KerneVault_v1 is the retired vault the Proof of Reserves currently attests.",
     "_skUSDNote": "skUSD_v1 (0xdEd74F7E...09DB4, deployed 2026-05-11) was retired 2026-07-03 and superseded by skUSD 0x96F5102C...DfA14: the staking vault was redeployed from the prepared source to reset a distorted share-price accounting state. skUSD_v1 holds only residual dust and must not be used."
   },

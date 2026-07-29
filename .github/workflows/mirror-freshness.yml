@@ -1,0 +1,35 @@
+name: mirror freshness
+
+# audits/DEPLOYED_VS_SOURCE.md promises that this mirror and the canonical web
+# version at kerne.fi/security/deployed-vs-source change in the same commit. On
+# 2026-07-28 that promise was found broken inside the file that makes it: the
+# mirror was five days stale and listed one fewer standing divergence than the
+# live site, on the most sensitive open finding the protocol has. This workflow
+# makes the promise enforceable instead of aspirational.
+#
+# The check compares parsed dates, never strings, because the two surfaces use
+# different date formats on purpose. If kerne.fi is unreachable the job passes
+# with a loud warning rather than painting a public repo red over someone else's
+# outage; drift is the only thing that fails it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 07:15 UTC daily. Catches drift introduced by a website deploy, which does
+    # not touch this repository and so triggers none of the events above.
+    - cron: "15 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare the mirror against the canonical web version
+        run: bash scripts/check_mirror_freshness.sh

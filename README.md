@@ -9,6 +9,8 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 > **2026-07-03 skUSD redeploy.** The staked-kUSD vault was redeployed from the prepared source to reset a distorted share-price accounting state (the prior vault's shares had drifted far from par). The **live** skUSD is now **`0x96F5102C15b839757f811A98CEc3725Ac21DfA14`** (holds the staked kUSD, asset = kUSD; Sourcify-verified as a partial match 2026-07-04 and source-verified on BaseScan 2026-07-10 via the Etherscan v2 standard-json-input flow, compiler 0.8.24 with optimizer disabled, viaIR, cancun). The prior skUSD `0xdEd74F7E...09DB4` is retired (residual dust only) and recorded under `retired.skUSD_v1` in [`deployments/8453.json`](deployments/8453.json). The `contracts/skUSD/` source bundle was refreshed on 2026-07-11 to mirror this live deployment (verified byte-for-byte against Sourcify).
 >
 > **2026-07-10 PSM redeploy.** The mint PSM was redeployed to `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803` and kUSD `MINTER_ROLE` was revoked on KUSDPSM v3 `0x07eBb486...5993` the same day. KUSDPSM v3 no longer mints. It is retained redeem-only, and its USDC reserve still backs the kUSD that was minted through it until reserves migrate, which is why it still appears in the Proof of Reserves totals at [`kerne.fi/api/por`](https://kerne.fi/api/por). Both rows appear in the table below.
+>
+> **Vault deposit state, stated before you check it.** Public WETH deposits on KerneVault v2 `0x8ccc56B5...292B` are **open on chain**, and the live vault runs the **unremediated pre-audit build**. `cast call 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B "maxDeposit(address)(uint256)" 0x0000000000000000000000000000000000000001 --rpc-url https://mainnet.base.org` returns 2^256-1, `paused()` is false and `whitelistEnabled()` is false. An earlier revision of `deployments/8453.json` said deposits were "intentionally closed pre-launch"; that was false, and the closure it described exists only in the app interface. A 2-of-3 Safe transaction calling `setWhitelistEnabled(true)` is proposed and signed 1 of 2 (`safeTxHash` `0xf08a3a84f8beb6a5fcc17ebafb1a0732bd3eeebc88cf7f933baad6a56519505c`, nonce 18) and has not executed as of 2026-07-28. The vault holds no user funds: `totalSupply()` is 0 and no third party has ever held a share. Full disclosure, with the finding-by-finding map: [`audits/DEPLOYED_VS_SOURCE.md`](audits/DEPLOYED_VS_SOURCE.md) and [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source).
 
 ## What this repo is
 
@@ -20,7 +22,7 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 
 ## Where the contract source is
 
-Every contract in the table below is source-verified on both BaseScan and Sourcify except KerneStaking and KerneFlashArbBot (disclosed below) and the live mint PSM, whose status postdates this snapshot and is marked as not re-checked rather than asserted. The live skUSD is a Sourcify partial match and was source-verified on BaseScan 2026-07-10 after its 2026-07-03 redeploy (see the note above). Per-contract status checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles). KUSDPSM v3 and KerneVault v2 (deployed in the 2026-06-16 ceremony) were source-verified on BaseScan and Sourcify 2026-06-17; KUSDPSM v3 has since been retired from minting (see the 2026-07-10 note above) and the live mint PSM `0xaBDE1138...9803` has not been re-checked in this snapshot:
+Every contract in the table below is source-verified on both BaseScan and Sourcify except KerneStaking, KerneFlashArbBot and the live KerneTreasury v3 (all three disclosed below) and the live mint PSM, whose status postdates this snapshot and is marked as not re-checked rather than asserted. The live skUSD is a Sourcify partial match and was source-verified on BaseScan 2026-07-10 after its 2026-07-03 redeploy (see the note above). Per-contract status checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles). KUSDPSM v3 and KerneVault v2 (deployed in the 2026-06-16 ceremony) were source-verified on BaseScan and Sourcify 2026-06-17; KUSDPSM v3 has since been retired from minting (see the 2026-07-10 note above) and the live mint PSM `0xaBDE1138...9803` has not been re-checked in this snapshot:
 
 | Contract | Address | BaseScan | Sourcify |
 |---|---|---|---|
@@ -36,7 +38,8 @@ Every contract in the table below is source-verified on both BaseScan and Sourci
 | KERNE (v1, retired) | `0xfEA3D217F5f2304C8551dc9F5B5169F2c2d87340` | Verified | Verified (match) |
 | esKERNE | `0x29c1d396A35aB75a8Bb8dC3949f98edFa5f25b34` | Verified | Verified (exact match) |
 | KerneStaking | `0x032Af1631671126A689614c0c957De774b45D582` | **Not verified** | **Not verified** |
-| KerneTreasury | `0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5` | Verified | Verified (exact match) |
+| KerneTreasury v3 (live, PSM fee sink, deployed 2026-06-16) | `0x5343C41d4FF2B61DAacA9cbC050550C40605B075` | **Not verified** | **Not verified** |
+| KerneTreasury v2 (retired, superseded as fee sink 2026-07-13) | `0x7c07517ABcc4BD674CC74B76D2Ab0d95A41560d5` | Verified | Verified (exact match) |
 | KerneInsuranceFund | `0xE8799FCF327C6D2f78103a3c9308C93592A30403` | Verified | Verified (exact match) |
 | KerneReferral | `0x1A04AF62baFc84b08b19d2aF7285eD5f8dAe4D9f` | Verified | Verified (match) |
 | KerneYieldDistributor | `0x096e38a04B632D28E017f86836225E0956CaD878` | Verified | Verified (match) |
@@ -47,10 +50,11 @@ KERNE (v1) is retired and superseded by KERNE (v2); it remains source-verified a
 
 The live mint PSM `0xaBDE1138...9803` postdates this mirror's verification snapshot, so its explorer status is marked "not re-checked" above rather than asserted. Read it directly on BaseScan (`#code` tab) or via the Sourcify v2 API for the current status. The retired KUSDPSM v3 row stays in the table because its USDC reserve still backs kUSD minted through it.
 
-The two unverified contracts, disclosed plainly:
+The three unverified contracts, disclosed plainly:
 
 - **KerneStaking** was deployed from source that predates a 2026-01-07 git-history reset; the deployed bytecode cannot be reproduced from any source tree we still hold (re-attempted 2026-06-11: current source compiles to a different code body, not a metadata-only difference). It will be re-deployed from verified source at the next contract ceremony.
 - **KerneFlashArbBot** has source-vs-deployed drift (in-development fixes awaiting redeploy) and is queued for redeploy, after which it will be verified at deploy time.
+- **KerneTreasury v3** `0x5343C41d4FF2B61DAacA9cbC050550C40605B075` is the live treasury and the address the live mint PSM returns from `treasury()`, so PSM fee sweeps accrue to it. Its source has not been published: checked 2026-07-28, BaseScan offers the "verify and publish" prompt, the Sourcify v2 API returns 404, and Blockscout reports no verification. Until source is published, read it as unverified bytecode. It holds no protocol assets today (0 ETH, 0 WETH, 0 USDC, 0 KERNE) and its `owner()` is the 2-of-3 Safe. The verified `contracts/KerneTreasury/` bundle in this repo mirrors the **retired** v2 `0x7c07517A...60d5`, not v3.
 
 Read the verified source per address:
 
