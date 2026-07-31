@@ -199,7 +199,7 @@ A full forge-testable source mirror (clone + `forge test` + local bytecode diff)
 
 ### 8. Audit posture
 
-Kerne does not yet have a published external audit. Kerne has engaged Hexens for its first external smart-contract audit (scope: kUSD, skUSD, KUSDPSM, KerneVault). Fieldwork ran from July 13, 2026 and Hexens delivered its initial report on July 20, 2026, with remediation underway. The report is confidential while remediation runs, the final report is still pending, and the code is not yet through a completed external audit. The bug-bounty page at `kerne.fi/security` is live (RFC 9116 `security.txt` at `kerne.fi/.well-known/security.txt`). External reports will be published in the `kerne-protocol/contracts-public/audits/` directory once they land.
+Kerne has completed its first external smart-contract audit. Hexens reviewed five contracts (kUSD, skUSD, KUSDPSM, KerneVault, esKERNE) at commit `0912c870`; fieldwork ran from July 13, 2026 and the final report published on July 31, 2026 with ten findings, none critical, eight fixed and two acknowledged, all ten in `KerneVault.sol`. The report is committed in full at [`audits/hexens-kerne-protocol-final-2026-07-31.pdf`](audits/hexens-kerne-protocol-final-2026-07-31.pdf) and the per-finding response is at `kerne.fi/insights/hexens-audit-every-finding-and-our-response`. Note that the live KerneVault runs earlier bytecode than the reviewed commit, so the vault findings are open against it and public deposits are closed on chain; see [`audits/DEPLOYED_VS_SOURCE.md`](audits/DEPLOYED_VS_SOURCE.md). The bug-bounty page at `kerne.fi/security` is live (RFC 9116 `security.txt` at `kerne.fi/.well-known/security.txt`).
 
 If you find a vulnerability, use the disclosure path on `kerne.fi/security`. If you find a transparency or claims bug, the same address works.
 
@@ -210,7 +210,7 @@ If you find a vulnerability, use the disclosure path on `kerne.fi/security`. If 
 Running this verification confirms that what Kerne claims about its own state matches what is on-chain and on its public endpoints at the moment you ran the check. It does NOT prove:
 
 - That the strategy is profitable in the future. Past funding and staking yields do not guarantee future ones; see `/docs/risk-disclosures`.
-- That the smart contracts are free of bugs. Pre-audit, you are reading source the team has tested but no third party has independently certified.
+- That the smart contracts are free of bugs. One external review of a specific commit is not a proof of correctness, two of its findings were acknowledged rather than fixed, and the live vault bytecode predates the reviewed commit.
 - That an off-chain venue (Hyperliquid, Binance, etc.) will remain solvent or accessible. Off-chain risk is real and itemized in the `triggers.offChain` array of `/api/risk-status`.
 - That Kerne governance will not act maliciously. Only the 2-of-3 Safe gates on-chain admin actions, and that protection is exactly as strong as the three signers' opsec.
 
