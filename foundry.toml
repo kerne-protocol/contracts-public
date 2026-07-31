@@ -1,0 +1,62 @@
+[profile.default]
+src = "contracts"
+test = "test"
+out = "out"
+libs = ["lib"]
+cache_path = "cache"
+
+# Every bundle under contracts/ was verified with solc 0.8.24, viaIR, cancun.
+# Pinning the exact version keeps a fresh clone reproducible instead of building
+# against whatever solc the machine happened to pick.
+#
+# One caveat, stated rather than buried: the bundles were NOT all verified at the
+# same optimizer setting. Nine ran optimizer_runs = 200 or 1000, and skUSD was
+# verified with the optimizer DISABLED. A single profile therefore reproduces
+# BEHAVIOUR faithfully but does not reproduce every deployed bytecode byte for
+# byte. Per-address bytecode equality is what BaseScan and Sourcify already
+# attest, and HOW_TO_VERIFY_KERNE.md walks through checking it. Read each
+# bundle's metadata.json for the exact settings it was verified under.
+solc = "0.8.24"
+evm_version = "cancun"
+via_ir = true
+optimizer = true
+optimizer_runs = 200
+
+# The registry-integrity test reads deployments/8453.json from disk.
+fs_permissions = [{ access = "read", path = "./deployments" }]
+
+# REMAPPINGS, and why they look the way they do (see remappings.txt).
+#
+# Each Sourcify bundle vendors the exact OpenZeppelin revision its address was
+# verified against, and those revisions differ between bundles. Context-scoped
+# remappings (`<context>:<prefix>=<target>`) are what let eleven bundles carrying
+# eleven different OZ trees compile as one project without editing a single
+# verified source file.
+#
+# Two traps are load-bearing:
+#
+#  1. Foundry strips the trailing slash from a remapping context, so a bare
+#     `contracts/kUSD` also prefix-matches `contracts/KUSDPSM/...` and silently
+#     hands it the wrong OZ tree. Every context ends in `/src/` for that reason.
+#  2. `lib/openzeppelin-contracts` (v5.7.0) is a GLOBAL FALLBACK only. It exists
+#     because forge's linter does not implement context-scoped remappings and
+#     would otherwise report every vendored import as unresolved. The per-bundle
+#     contexts override it for everything under contracts/*/src, which was
+#     verified empirically: adding the fallback left all eleven protocol
+#     contracts byte-for-byte identical.
+
+[lint]
+# The bundles under contracts/ are verified source pulled verbatim from Sourcify.
+# They are not ours to restyle, and lint findings on them are noise, so the
+# linter does not gate the build. It still runs over test/, which is our code.
+lint_on_build = false
+
+[fmt]
+line_length = 120
+tab_width = 4
+# Matches the import style the mirrored bundles were written in, so test code and
+# verified source read the same way.
+bracket_spacing = true
+
+[rpc_endpoints]
+base = "${BASE_RPC_URL}"

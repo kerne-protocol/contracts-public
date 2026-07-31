@@ -1,0 +1,13 @@
+forge-std/=lib/forge-std/src/
+ds-test/=lib/forge-std/lib/ds-test/src/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+contracts/esKERNE/src/:@openzeppelin/contracts/=contracts/esKERNE/lib/openzeppelin-contracts/contracts/
+contracts/KERNE/src/:@openzeppelin/contracts/=contracts/KERNE/lib/openzeppelin-contracts/contracts/
+contracts/KerneInsuranceFund/src/:@openzeppelin/contracts/=contracts/KerneInsuranceFund/lib/openzeppelin-contracts/contracts/
+contracts/KerneTreasury/src/:@openzeppelin/contracts/=contracts/KerneTreasury/lib/openzeppelin-contracts/contracts/
+contracts/KerneVault/src/:@openzeppelin/contracts/=contracts/KerneVault/lib/openzeppelin-contracts/contracts/
+contracts/KerneYieldDistributor/src/:@openzeppelin/contracts/=contracts/KerneYieldDistributor/lib/openzeppelin-contracts/contracts/
+contracts/KerneYieldOracle/src/:@openzeppelin/contracts/=contracts/KerneYieldOracle/lib/openzeppelin-contracts/contracts/
+contracts/kUSD/src/:@openzeppelin/contracts/=contracts/kUSD/lib/openzeppelin-contracts/contracts/
+contracts/KUSDPSM/src/:@openzeppelin/contracts/=contracts/KUSDPSM/lib/openzeppelin-contracts/contracts/
+contracts/skUSD/src/:@openzeppelin/contracts/=contracts/skUSD/lib/openzeppelin-contracts/contracts/

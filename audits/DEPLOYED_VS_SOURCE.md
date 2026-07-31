@@ -1,6 +1,6 @@
 # Deployed vs source: state disclosure
 
-For reviewers and audit firms. Last updated 2026-07-29. Mirrors the canonical web version at [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source). The matching web revision is committed and carries the same 2026-07-29 date; it goes live on the next site deploy, so for a short window the page may still show 2026-07-25 while this file is ahead of it. That direction is the safe one, and it is the direction the CI check permits.
+For reviewers and audit firms. Last updated 2026-07-31. Mirrors the canonical web version at [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source), which carries the July 30, 2026 closure described in row 1. This file may run slightly ahead of the page after a mirror-side correction; that direction is the safe one, and it is the direction the CI check permits.
 
 On any young protocol the repository moves faster than the chain. This document is the canonical table of every place where Kerne's deployed bytecode behaves differently from the current source. It was first published before any external review began, and it is where the gap between the audited commit and the deployed contracts is stated, so a reviewer reading the code finds context here rather than surprises there.
 
@@ -27,18 +27,32 @@ Each row states what the live bytecode does, what the current source does instea
 
 **Current source.** Current source carries the two NAV reclassification fixes, the forfeiture high-water fix, and the `depositsEnabled` gate. The remediation branch `flip/hexens-remediation-jul20` at commit `98f29e55`, a child of the audited commit, additionally carries eight of the ten Hexens fixes. The other two findings are acknowledged by design, with the reasoning published in full rather than patched under time pressure.
 
-**Practical exposure.** The vault holds no user funds. `totalSupply()` is 0, its WETH balance is 0, and no third party has ever held a share. Both High findings concern esKERNE forfeiture, and esKERNE `totalSupply()` and `totalEmitted()` are both 0, so nothing has ever been emitted for the mechanism to act on. There is no open drain. The real exposure is forward-looking and it is specific: because the on-chain deposits gate was never deployed, `maxDeposit()` returns the maximum uint256 for any address, so a depositor could put funds into pre-audit bytecode before the remediated build is live.
+**Practical exposure.** The vault holds no user funds. `totalSupply()` is 0, its WETH balance is 0, and no third party has ever held a share. Both High findings concern esKERNE forfeiture, and esKERNE `totalSupply()` and `totalEmitted()` are both 0, so nothing has ever been emitted for the mechanism to act on. There is no open drain. The forward-looking exposure this row used to describe, that `maxDeposit()` returned the maximum uint256 for any address so a depositor could put funds into pre-audit bytecode, **was closed on chain on 2026-07-30** (see the closure status below). `maxDeposit()` now returns 0 for a non-whitelisted address. The row stays in this table because the deployed bytecode still differs from current source; what changed is that the difference is no longer reachable by a depositor.
 
 **Operating rule.** Standing operating rule, and the sequencing this protocol commits to: remediated bytecode before capital, not before announcement. No deposit is opened into this address until the remediated build is deployed and verified. Closing the door on chain is a single 2-of-3 Safe call to `setWhitelistEnabled(true)`, which reproduces the missing gate exactly and leaves withdrawals untouched. The full finding-by-finding on-chain map, with commands to reproduce every claim, is in the repository at `docs/security/DEPLOYED_BYTECODE_VS_AUDITED_SOURCE_2026-07-25.md`.
 
-**Closure status, as of 2026-07-28.** That Safe call is **proposed and not executed**. `safeTxHash` `0xf08a3a84f8beb6a5fcc17ebafb1a0732bd3eeebc88cf7f933baad6a56519505c` at Safe nonce 18, `to` the vault, calldata `0x052d9e7e` with the boolean set true, signed by 1 of the 2 required owners. Until it executes, deposits are open, and this line says so. Check it yourself:
+**Closure status: EXECUTED 2026-07-30.** The Safe call described above has run. `safeTxHash` `0xf08a3a84f8beb6a5fcc17ebafb1a0732bd3eeebc88cf7f933baad6a56519505c` at Safe nonce 18 executed in transaction [`0x0be06e9a4a4ce3545fdea6af8e83ed1663e8d0ce35cb28a211836ab83a57579e`](https://basescan.org/tx/0x0be06e9a4a4ce3545fdea6af8e83ed1663e8d0ce35cb28a211836ab83a57579e) at block 49318654, status 1. Public deposits into the pre-audit build are closed. Withdrawals were deliberately left untouched: the vault is **not** paused, so any holder can still exit.
+
+Prior revisions of this file said deposits were open. They were accurate when written and are now superseded. Re-verified first-hand at block 49345485 on 2026-07-31, on `https://mainnet.base.org`. Check it yourself:
 
 ```bash
 cast call 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B \
   "maxDeposit(address)(uint256)" 0x0000000000000000000000000000000000000001 \
-  --rpc-url https://mainnet.base.org      # returns 2^256-1 while deposits are open
+  --rpc-url https://mainnet.base.org      # returns 0
 cast call 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B \
-  "whitelistEnabled()(bool)" --rpc-url https://mainnet.base.org   # false until the Safe call executes
+  "whitelistEnabled()(bool)" --rpc-url https://mainnet.base.org   # true
+cast call 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B \
+  "paused()(bool)" --rpc-url https://mainnet.base.org             # false, withdrawals still open
+cast call 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B \
+  "totalSupply()(uint256)" --rpc-url https://mainnet.base.org     # 0, nobody ever deposited
+```
+
+Reopening deposits requires both the remediated build and share math backed by payable assets. It is not a configuration change.
+
+These four assertions are also executable. `test/fork/RegistryMatchesChain.t.sol` checks them against live Base, so a future change to any of them fails a test rather than silently ageing this paragraph:
+
+```bash
+BASE_RPC_URL=https://mainnet.base.org forge test --match-path 'test/fork/*'
 ```
 
 ### 2. kUSD

@@ -1,0 +1,83 @@
+name: contracts
+
+# This repository publishes eleven explorer-verified contract bundles and a
+# regression suite built from findings reported by external researchers. The
+# badge in README.md points at this workflow, so it has to mean something: it
+# compiles every mirrored bundle from a clean checkout and runs every test.
+#
+# The suite is deliberately HERMETIC. No RPC endpoint, no API key, no network
+# beyond fetching the toolchain and the two submodules. A reviewer who clones
+# this repository runs exactly what this workflow runs. The fork tests under
+# test/fork are the one exception and are opt-in via BASE_RPC_URL; they are not
+# run here, because a public badge that goes red when somebody else's RPC
+# rate-limits teaches maintainers to ignore the badge.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FOUNDRY_PROFILE: default
+
+jobs:
+  build-and-test:
+    name: forge build + forge test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out the repository and its submodules
+        uses: actions/checkout@v4
+        with:
+          # forge-std and the canonical OpenZeppelin tree are submodules. Without
+          # this the build fails on the first import, which is the exact failure
+          # this repository existed in for its first two months.
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Show toolchain versions
+        run: |
+          forge --version
+          cast --version
+
+      # The mirrored bundles build with viaIR, which is slow and almost never
+      # changes. Caching the compiler and the build cache keeps a routine run to
+      # well under a minute without ever hiding a real compile failure: the cache
+      # key includes the sources themselves.
+      - name: Cache the Solidity compiler and forge build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.svm
+            cache
+          key: forge-${{ runner.os }}-${{ hashFiles('foundry.toml', 'remappings.txt', 'contracts/**/*.sol', 'test/**/*.sol') }}
+          restore-keys: |
+            forge-${{ runner.os }}-
+
+      - name: Check formatting of the tests
+        # Only test/, never contracts/. The bundles under contracts/ are verified
+        # source pulled verbatim from Sourcify and reformatting them would break
+        # the byte-for-byte correspondence with the explorers that is the entire
+        # point of this repository.
+        run: forge fmt --check test/
+
+      - name: Build every mirrored bundle
+        run: forge build --sizes
+
+      - name: Run the regression suite
+        run: forge test -vvv
+
+      - name: Confirm the fork tests skip cleanly without an RPC
+        # The fork suite must never fail a clean checkout. If someone makes it
+        # mandatory by accident, this step catches it here rather than on a
+        # stranger's machine.
+        run: forge test --match-path 'test/fork/*'

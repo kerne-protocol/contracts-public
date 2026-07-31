@@ -1,5 +1,13 @@
 # Kerne Protocol Contracts (public mirror)
 
+[![contracts](https://github.com/kerne-protocol/contracts-public/actions/workflows/forge-ci.yml/badge.svg)](https://github.com/kerne-protocol/contracts-public/actions/workflows/forge-ci.yml)
+[![mirror freshness](https://github.com/kerne-protocol/contracts-public/actions/workflows/mirror-freshness.yml/badge.svg)](https://github.com/kerne-protocol/contracts-public/actions/workflows/mirror-freshness.yml)
+
+```bash
+git clone --recurse-submodules https://github.com/kerne-protocol/contracts-public
+cd contracts-public && forge test
+```
+
 Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neutral synthetic dollar on Base mainnet (chain 8453). This repository exists so that external auditors, allocators, integrators, and journalists can read the deployment registry, run the live-protocol verification script, and check Kerne's published claims against on-chain state, without needing access to any private repo or any Kerne-controlled infrastructure.
 
 > **Live mint path (current).** kUSD `MINTER_ROLE` is held today by exactly two contracts: **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`** and the **live KUSDPSM `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803`** (redeployed 2026-07-10). `0xaBDE1138...9803` is the address users mint through today. Any PSM address other than that one returns `false` for `hasRole(MINTER_ROLE, ...)` on kUSD; see the key-rotation check in [`HOW_TO_VERIFY_KERNE.md`](HOW_TO_VERIFY_KERNE.md). The canonical live registry is [`deployments/8453.json`](deployments/8453.json).
@@ -10,7 +18,7 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 >
 > **2026-07-10 PSM redeploy.** The mint PSM was redeployed to `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803` and kUSD `MINTER_ROLE` was revoked on KUSDPSM v3 `0x07eBb486...5993` the same day. KUSDPSM v3 no longer mints. It is retained redeem-only, and its USDC reserve still backs the kUSD that was minted through it until reserves migrate, which is why it still appears in the Proof of Reserves totals at [`kerne.fi/api/por`](https://kerne.fi/api/por). Both rows appear in the table below.
 >
-> **Vault deposit state, stated before you check it.** Public WETH deposits on KerneVault v2 `0x8ccc56B5...292B` are **open on chain**, and the live vault runs the **unremediated pre-audit build**. `cast call 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B "maxDeposit(address)(uint256)" 0x0000000000000000000000000000000000000001 --rpc-url https://mainnet.base.org` returns 2^256-1, `paused()` is false and `whitelistEnabled()` is false. An earlier revision of `deployments/8453.json` said deposits were "intentionally closed pre-launch"; that was false, and the closure it described exists only in the app interface. A 2-of-3 Safe transaction calling `setWhitelistEnabled(true)` is proposed and signed 1 of 2 (`safeTxHash` `0xf08a3a84f8beb6a5fcc17ebafb1a0732bd3eeebc88cf7f933baad6a56519505c`, nonce 18) and has not executed as of 2026-07-28. The vault holds no user funds: `totalSupply()` is 0 and no third party has ever held a share. Full disclosure, with the finding-by-finding map: [`audits/DEPLOYED_VS_SOURCE.md`](audits/DEPLOYED_VS_SOURCE.md) and [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source).
+> **Vault deposit state, stated before you check it.** Public WETH deposits on KerneVault v2 `0x8ccc56B5...292B` are **closed on chain as of 2026-07-30**. The 2-of-3 Safe transaction calling `setWhitelistEnabled(true)` (`safeTxHash` `0xf08a3a84f8beb6a5fcc17ebafb1a0732bd3eeebc88cf7f933baad6a56519505c`, nonce 18) executed in [`0x0be06e9a...79e`](https://basescan.org/tx/0x0be06e9a4a4ce3545fdea6af8e83ed1663e8d0ce35cb28a211836ab83a57579e) at block 49318654. Re-verified first-hand at block 49345485 on 2026-07-31: `maxDeposit(0x…01)` returns **0**, `whitelistEnabled()` is **true**, `paused()` is **false** so withdrawals are untouched, and `totalSupply()` is **0** because no third party ever held a share. The live vault still runs the **unremediated pre-audit build**, which is why the door is shut: reopening deposits needs the remediated build, not a configuration change. Earlier revisions of this README and of `deployments/8453.json` described deposits as open, and before that as "intentionally closed pre-launch"; the first was accurate when written and is now superseded, the second was false. Full disclosure, with the finding-by-finding map: [`audits/DEPLOYED_VS_SOURCE.md`](audits/DEPLOYED_VS_SOURCE.md) and [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source). Every claim in this paragraph is asserted against live Base by `test/fork/RegistryMatchesChain.t.sol`.
 
 ## What this repo is
 
@@ -62,7 +70,39 @@ Read the verified source per address:
 - BaseScan: `https://basescan.org/address/<address>#code`
 - Sourcify: `https://repo.sourcify.dev/contracts/full_match/8453/<address>/` (or `partial_match` for "match"-tier entries)
 
-A unified **forge-testable tree** (so you can `git clone && forge test` and diff bytecode locally from a single build) will be added at the next contract redeploy, when the in-development source and the deployed bytecode are realigned. Until then, the per-address bundles in `contracts/` and the explorers are the canonical, bytecode-matched reference, and the verification script + `HOW_TO_VERIFY_KERNE.md` cover the live-protocol claims end to end.
+## Build it and run the tests
+
+Earlier revisions of this README promised a forge-testable tree "at the next contract redeploy". That was a promise not to be checkable yet, and it is now kept:
+
+```bash
+git clone --recurse-submodules https://github.com/kerne-protocol/contracts-public
+cd contracts-public
+forge build      # compiles all 11 verified bundles, 207 Solidity files
+forge test       # runs the regression suite
+```
+
+Nothing else is required. No RPC endpoint, no API key, no environment file. If you already cloned without `--recurse-submodules`, run `git submodule update --init --recursive` first.
+
+**How eleven bundles with eleven different OpenZeppelin trees compile as one project.** Each bundle under `contracts/` is a Sourcify multi-file bundle that vendors the exact OpenZeppelin revision its address was verified against, so the trees genuinely differ between bundles. `remappings.txt` gives each one a context-scoped remapping, which resolves `@openzeppelin/contracts/...` per bundle without editing a single verified source file. The bundles stay byte-for-byte what the explorers serve. `foundry.toml` documents the two traps in that setup, both of which bite silently.
+
+**What the tests are.** `test/` is a regression suite built from findings reported by external security researchers, plus the properties Kerne's own disclosure documents claim. Every researcher named in a test header has confirmed they want public credit; the full policy, and the reason some findings here are unattributed, is in [`test/README.md`](test/README.md). Coverage is organised as:
+
+| Directory | What it holds |
+|---|---|
+| `test/regressions/` | One file per externally reported finding, headed with the reporter, the date, and the current status |
+| `test/disclosures/` | The three standing divergences in [`audits/DEPLOYED_VS_SOURCE.md`](audits/DEPLOYED_VS_SOURCE.md), as executable assertions |
+| `test/invariants/` | Properties that are fixed and live, kept passing so a regression is visible |
+| `test/fork/` | Opt-in checks of this repository's published claims against live Base state |
+
+The fork tests are the ones that turn a claim into something you can check yourself:
+
+```bash
+BASE_RPC_URL=https://mainnet.base.org forge test --match-path 'test/fork/*'
+```
+
+They assert that the addresses in `deployments/8453.json` are the ones holding the roles this README says they hold, and that the vault deposit state described above is the state on chain. Without `BASE_RPC_URL` they skip with a message rather than failing, so a clean clone is always green.
+
+**On bytecode.** A single `forge build` reproduces behaviour faithfully but does not reproduce every deployed bytecode byte for byte, because the bundles were not all verified at the same optimizer setting (nine at 200 or 1000 runs, skUSD with the optimizer disabled). Per-address bytecode equality is what BaseScan and Sourcify already attest; each bundle's `metadata.json` records the exact settings it was verified under, and `HOW_TO_VERIFY_KERNE.md` walks through checking it.
 
 ## What this repo is NOT
 
