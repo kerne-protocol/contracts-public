@@ -4,7 +4,9 @@
 
 Email **kerne.systems@protonmail.com** with subject `Security Report: <brief description>`. This is the same disclosure path published at [kerne.fi/security](https://kerne.fi/security) and [kerne.fi/.well-known/security.txt](https://kerne.fi/.well-known/security.txt) (RFC 9116).
 
-We acknowledge receipt within 48 hours and provide an initial assessment within 7 business days. The coordinated-disclosure window is 90 days from acknowledgement before any public discussion.
+We acknowledge receipt within three business days and give you a technical verdict within ten business days. The coordinated-disclosure window is 90 days from acknowledgement before any public discussion.
+
+Those windows changed on July 31, 2026, and the direction they moved matters, so here it is plainly. This file used to promise acknowledgement within 48 hours and an initial assessment within 7 business days, while [kerne.fi/security](https://kerne.fi/security) promised three business days and ten in one section and the 48 hours in another. Three different published numbers for one promise, and the 48-hour one had already been missed twice in the preceding week. Rather than keep a tighter number we were not meeting, the windows above are now the only ones published anywhere, and they are the ones we have actually been meeting. They are targets rather than guarantees and can move with report volume, but if one is going to be missed you will be told it is being missed rather than left waiting.
 
 Good-faith researchers acting under this policy receive safe-harbor treatment.
 
