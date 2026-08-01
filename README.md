@@ -30,14 +30,14 @@ Public verification surface for [Kerne Protocol](https://kerne.fi), a delta-neut
 
 ## Where the contract source is
 
-Every contract in the table below is source-verified on both BaseScan and Sourcify except KerneStaking, KerneFlashArbBot and the live KerneTreasury v3 (all three disclosed below) and the live mint PSM, whose status postdates this snapshot and is marked as not re-checked rather than asserted. The live skUSD is a Sourcify partial match and was source-verified on BaseScan 2026-07-10 after its 2026-07-03 redeploy (see the note above). Per-contract status checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles). KUSDPSM v3 and KerneVault v2 (deployed in the 2026-06-16 ceremony) were source-verified on BaseScan and Sourcify 2026-06-17; KUSDPSM v3 has since been retired from minting (see the 2026-07-10 note above) and the live mint PSM `0xaBDE1138...9803` has not been re-checked in this snapshot:
+Every contract in the table below is source-verified on both BaseScan and Sourcify except KerneStaking, KerneFlashArbBot and the live KerneTreasury v3 (all three disclosed below), and the live mint PSM, which is Sourcify-verified with an exact match but is not natively verified on BaseScan. The live skUSD is a Sourcify partial match and was source-verified on BaseScan 2026-07-10 after its 2026-07-03 redeploy (see the note above). Per-contract status checked 2026-06-11 (Sourcify status via `sourcify.dev/server/v2/contract/8453/<address>`, BaseScan via each address's `#code` tab; the four formerly BaseScan-pending contracts were verified on BaseScan 2026-06-11 via the Etherscan v2 API using the Sourcify source bundles). KUSDPSM v3 and KerneVault v2 (deployed in the 2026-06-16 ceremony) were source-verified on BaseScan and Sourcify 2026-06-17; KUSDPSM v3 has since been retired from minting (see the 2026-07-10 note above). The live mint PSM `0xaBDE1138...9803` postdates that snapshot and was re-checked on 2026-08-01, first-hand against both explorers:
 
 | Contract | Address | BaseScan | Sourcify |
 |---|---|---|---|
 | kUSD | `0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3` | Verified | Verified (match) |
 | skUSD (live) | `0x96F5102C15b839757f811A98CEc3725Ac21DfA14` | Verified | Verified (partial) |
 | skUSD (v1, retired) | `0xdEd74F7E06efc76455C07418b8b74Cc2bc009DB4` | Verified | Verified (match) |
-| KUSDPSM (live mint path, deployed 2026-07-10) | `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803` | Not re-checked in this snapshot | Not re-checked in this snapshot |
+| KUSDPSM (live mint path, deployed 2026-07-10) | `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803` | **Not verified** | Verified (exact match) |
 | KUSDPSM v3 (retired 2026-07-10, redeem-only reserve) | `0x07eBb486e11BD217e6085eb5ab663e4517595993` | Verified | Verified |
 | KUSDPSM (v1, redeem reserve) | `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` | Verified | Verified (exact match) |
 | KerneVault v2 (live) | `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B` | Verified | Verified |
@@ -56,7 +56,13 @@ Every contract in the table below is source-verified on both BaseScan and Sourci
 
 KERNE (v1) is retired and superseded by KERNE (v2); it remains source-verified and is listed for completeness (see the `retired` section of `deployments/8453.json`).
 
-The live mint PSM `0xaBDE1138...9803` postdates this mirror's verification snapshot, so its explorer status is marked "not re-checked" above rather than asserted. Read it directly on BaseScan (`#code` tab) or via the Sourcify v2 API for the current status. The retired KUSDPSM v3 row stays in the table because its USDC reserve still backs kUSD minted through it.
+The live mint PSM `0xaBDE1138...9803` postdated this mirror's verification snapshot and was re-checked first-hand on 2026-08-01. Sourcify reports `creationMatch` and `runtimeMatch` both `exact_match`, verified 2026-07-11T00:12:17Z, which is the strongest verification status Sourcify issues: the deployed bytecode matches the published source exactly, including metadata. BaseScan holds no native verification for this address and still shows the "Verify and Publish" prompt, so that column reads Not verified rather than being inferred from the Sourcify result. This is the contract on the live kUSD mint path, so check it yourself rather than taking the table's word for it:
+
+```bash
+curl -s https://sourcify.dev/server/v2/contract/8453/0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803
+```
+
+The retired KUSDPSM v3 row stays in the table because its USDC reserve still backs kUSD minted through it.
 
 The three unverified contracts, disclosed plainly:
 
