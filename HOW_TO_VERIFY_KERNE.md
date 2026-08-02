@@ -27,7 +27,7 @@ The script hits every documented public endpoint on `kerne.fi` and `app.kerne.fi
 
 Dependencies: `curl`, `jq`. Both standard on Ubuntu, macOS, and most Linux distros. Windows users can install jq via `winget install jqlang.jq`.
 
-The same script runs on Kerne's own CI hourly and on every push to `main` (`.github/workflows/endpoint-smoke.yml`), so a broken endpoint surfaces in CI before it surfaces here.
+The same script runs in Kerne's own CI on every push to `main` and on a six-hourly schedule, so a broken endpoint usually surfaces in CI before it surfaces here. That workflow lives in Kerne's private monorepo and is not part of this mirror, so it is not a claim you can check from this repository. Running the script is.
 
 ---
 

@@ -10,9 +10,11 @@
 #   - a trust tool: any outsider (auditor, allocator, journalist) can run
 #     `bash scripts/verify_public_endpoints.sh` against the live protocol and
 #     verify the public surface in 30 seconds, no authentication required;
-#   - a CI smoke harness: .github/workflows/endpoint-smoke.yml runs this on
-#     every push to main and hourly, so a regression like the /api/risk-status
-#     503 we shipped 2026-04-25 is caught within an hour of landing.
+#   - a CI smoke harness: Kerne's private monorepo runs this on every push to
+#     main and on a six-hourly schedule, so a regression like the
+#     /api/risk-status 503 we shipped 2026-04-25 is caught quickly. That
+#     workflow is not in this public mirror, so it is not something you can
+#     verify from here; the script itself is.
 #
 # Dependencies: curl, jq. Both standard on Ubuntu / macOS / WSL.
 #
@@ -119,8 +121,8 @@ check_status_200() {
 #
 # Rationale: a regressed Next.js metadata override or a Vercel env-var injection
 # can silently flip the homepage to noindex and tank organic discoverability.
-# This check is the canary so any such regression fails CI within the hour the
-# hourly smoke cron fires. Item #2 of the 2026-05-18 360 audit.
+# This check is the canary so any such regression fails CI on the next push to
+# main or the next six-hourly smoke run. Item #2 of the 2026-05-18 360 audit.
 check_meta_robots() {
   local url="$1" label="$2"
   local tmp_body tmp_headers http_code body headers
@@ -205,8 +207,9 @@ fi
 
 # ─── Marketing site (kerne.fi) ─────────────────────────────────────────────
 
-# /api/health — liveness ping for both apps. Body shape varies; we just want 200.
-check_endpoint "$KERNE_ORIGIN/api/health" '.status // "ok"' "kerne.fi /api/health"
+# /api/health — liveness ping for both apps. Assert the documented `ok` field is
+# actually present, not a fallback that passes when the field is missing.
+check_endpoint "$KERNE_ORIGIN/api/health" '.ok' "kerne.fi /api/health"
 
 # /api/por — Proof of Reserves. Must include the four-bucket composition
 # object so any future non-zero off-chain bucket is loudly visible per
@@ -255,7 +258,7 @@ check_status_200 "$KERNE_ORIGIN/docs/exit-triggers-and-emergency-runbook" "kerne
 
 # ─── Terminal app (app.kerne.fi) ───────────────────────────────────────────
 
-check_endpoint "$APP_ORIGIN/api/health" '.status // "ok"' "app.kerne.fi /api/health"
+check_endpoint "$APP_ORIGIN/api/health" '.ok' "app.kerne.fi /api/health"
 
 # /api/por mirror on terminal. Must carry the same composition contract as
 # kerne.fi so consumers can hit either origin.
@@ -272,9 +275,16 @@ check_endpoint "$APP_ORIGIN/api/apy" '.sources.fundingWindowDays' "app.kerne.fi 
 
 # /api/psm-status — first-mint readiness. Single most-watched gate before
 # the first USDC->kUSD swap lands.
-check_endpoint "$APP_ORIGIN/api/psm-status" '.ready // "MISSING"' "app.kerne.fi /api/psm-status ready"
-check_endpoint "$APP_ORIGIN/api/psm-status" '.gates.mintingEnabled // "MISSING"' "app.kerne.fi /api/psm-status gates.mintingEnabled"
-check_endpoint "$APP_ORIGIN/api/psm-status" '.gates.psmHasMinterRole // "MISSING"' "app.kerne.fi /api/psm-status gates.psmHasMinterRole"
+#
+# These three are BOOLEANS, so they carry no `// "MISSING"` fallback. jq's `//`
+# treats `false` as falsy exactly like `null`, so `.gates.psmHasMinterRole //
+# "MISSING"` would substitute the string "MISSING" the moment the role is
+# genuinely revoked, and this script would log a PASS reading "MISSING" instead
+# of reporting the flip. Without the fallback, an absent field yields `null` and
+# FAILs, and a real `false` is reported as `false`.
+check_endpoint "$APP_ORIGIN/api/psm-status" '.ready' "app.kerne.fi /api/psm-status ready"
+check_endpoint "$APP_ORIGIN/api/psm-status" '.gates.mintingEnabled' "app.kerne.fi /api/psm-status gates.mintingEnabled"
+check_endpoint "$APP_ORIGIN/api/psm-status" '.gates.psmHasMinterRole' "app.kerne.fi /api/psm-status gates.psmHasMinterRole"
 
 # Indexability canaries on the terminal app. /mint, /swap, /rewards are the
 # three discovery-bearing routes a search-engine crawl should land on.
