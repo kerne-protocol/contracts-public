@@ -12,9 +12,14 @@ This directory publishes external audit reports as they land. Each report is com
 | Report | [`hexens-kerne-protocol-final-2026-07-31.pdf`](hexens-kerne-protocol-final-2026-07-31.pdf) (29 pages, 8,269,537 bytes) |
 | SHA-256 | `655e7126030c750e9d58f2ab30b58215ce604942f06997d5c01532d6f687a4ca` |
 | Commit reviewed | `0912c870a89f1fa707f69c60fc05c05ea85e2fa8`, frozen before fieldwork began |
-| Scope | five contracts: `kUSD.sol`, `skUSD.sol`, `KUSDPSM.sol`, `KerneVault.sol`, `esKERNE.sol` |
+| Scope | five contracts: `kUSD.sol`, `skUSD.sol`, `KUSDPSM.sol`, `KerneVault.sol`, `esKERNE.sol`, published verbatim in [`scope/`](scope/) |
 | Fieldwork | 13 July 2026 to 20 July 2026 (initial report), revision received 21 July 2026, final report 31 July 2026 |
-| Remediation commit | `98f29e55e587ea81d18e61a5ec2061b8a23287f4` |
+| Remediation commit | `98f29e55e587ea81d18e61a5ec2061b8a23287f4`, also published in [`scope/`](scope/) |
+
+The report's own Scope section links those five files on `github.com/enerzy17/kerne-main`, which is
+private, so every one of those links returns 404. [`scope/`](scope/) republishes the exact source of
+both commits, with per-file SHA-256, so the reviewed code can be read and the remediation diffed
+without access to the private repository.
 
 ### Findings, as counted by the report itself
 
