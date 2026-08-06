@@ -11,6 +11,17 @@ name: mirror freshness
 # different date formats on purpose. If kerne.fi is unreachable the job passes
 # with a loud warning rather than painting a public repo red over someone else's
 # outage; drift is the only thing that fails it.
+#
+# 2026-08-06: that was not enough, and the gap was found the expensive way. This
+# job made ZERO on-chain calls. It compared a date and a count in one markdown
+# file, and stayed green for nine days while deployments/8453.json asserted that
+# public vault deposits were OPEN and that maxDeposit returned 2^256-1, when a
+# Safe transaction had shut the door on 2026-07-30 and maxDeposit returned 0.
+# Anyone following this repository's own verification instructions would have
+# caught it in a single RPC call.
+#
+# So the second step below actually asserts chain state. It is what turns this
+# badge from a claim about two dates into a claim about Base.
 
 on:
   push:
@@ -33,3 +44,10 @@ jobs:
 
       - name: Compare the mirror against the canonical web version
         run: bash scripts/check_mirror_freshness.sh
+
+      - name: Assert the published vault deposit state against live Base
+        # Four eth_calls across four public endpoints, no key and no toolchain.
+        # A network problem exits 0 with a warning; only the registry and the
+        # chain genuinely disagreeing fails the build. Both directions fail:
+        # reopening deposits and forgetting this file is caught too.
+        run: python3 scripts/check_registry_vs_chain.py

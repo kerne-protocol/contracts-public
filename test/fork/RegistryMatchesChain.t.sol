@@ -104,25 +104,58 @@ contract RegistryMatchesChainTest is KerneTest {
         assertEq(IPsmLike(LIVE_MINT_PSM).treasury(), registryTreasury, "and the live PSM agrees");
     }
 
-    /// @notice audits/DEPLOYED_VS_SOURCE.md row 1 and the README both state the
-    ///         vault's deposit state and print the exact cast calls. This asserts
-    ///         the same four facts, so those documents cannot go stale without
-    ///         something failing.
+    /// @notice The vault's deposit state, read from the registry rather than
+    ///         hardcoded, and asserted against the chain.
     ///
-    ///         This test has already earned its place. The first time it ran, on
-    ///         2026-07-31, it failed: it still expected the pre-2026-07-30 state
-    ///         (deposits open, maxDeposit 2^256-1) because the Safe transaction had
-    ///         executed on 2026-07-30 and the mirror had never been updated. The
-    ///         website had been corrected the same day; this repository had not.
-    ///         Both documents were corrected in the commit that introduced this
-    ///         file. A failure here means the disclosure needs updating, not that
-    ///         the test is wrong.
+    ///         This test has already earned its place twice. The first time it
+    ///         ran, on 2026-07-31, it failed: it still expected the pre-2026-07-30
+    ///         state (deposits open, maxDeposit 2^256-1) because the Safe
+    ///         transaction had executed on 2026-07-30 and the mirror had never
+    ///         been updated. Both documents were corrected in the commit that
+    ///         introduced this file.
+    ///
+    ///         ⛔ It then failed a SECOND time, in a way this file was partly
+    ///         responsible for. It hardcoded `0` and `true` here, which made this
+    ///         a second copy of the truth rather than a check on the published
+    ///         one, and deployments/8453.json went on asserting the opposite for
+    ///         nine days with this test passing the whole time. Expectations now
+    ///         come from `contracts.KerneVault.depositState` in the registry, so
+    ///         there is exactly ONE place to change when the door moves, and
+    ///         changing the chain without changing that place fails here and in
+    ///         scripts/check_registry_vs_chain.py.
+    ///
+    ///         A failure here means the disclosure needs updating, not that the
+    ///         test is wrong.
     function test_disclosedVaultDepositStateMatchesChain() public onlyForked {
         IKerneVaultLike vault = IKerneVaultLike(LIVE_VAULT);
-        assertEq(vault.maxDeposit(address(1)), 0, "deposits closed since 2026-07-30, as disclosed");
-        assertTrue(vault.whitelistEnabled(), "whitelist on, as disclosed");
-        assertFalse(vault.paused(), "NOT paused: withdrawals stay open, as disclosed");
-        assertEq(vault.totalSupply(), 0, "the vault holds no user funds, as disclosed");
+
+        // The registry names the address this test probes. If those ever drift
+        // apart the rest of the assertions are measuring the wrong contract.
+        assertEq(
+            vm.parseJsonAddress(registry, ".contracts.KerneVault.address"),
+            LIVE_VAULT,
+            "registry names the vault this test probes"
+        );
+
+        // maxDeposit is carried as a decimal STRING because 2^256-1 does not
+        // survive a JSON number, and a silently-truncated expectation is how a
+        // check like this passes vacuously.
+        uint256 expectedMaxDeposit =
+            vm.parseUint(vm.parseJsonString(registry, ".contracts.KerneVault.depositState.maxDepositAnyAddress"));
+        bool expectedWhitelist = vm.parseJsonBool(registry, ".contracts.KerneVault.depositState.whitelistEnabled");
+        bool expectedPaused = vm.parseJsonBool(registry, ".contracts.KerneVault.depositState.paused");
+        uint256 expectedSupply =
+            vm.parseUint(vm.parseJsonString(registry, ".contracts.KerneVault.depositState.totalSupply"));
+        bool expectedOpen = vm.parseJsonBool(registry, ".contracts.KerneVault.depositState.open");
+
+        assertEq(vault.maxDeposit(address(1)), expectedMaxDeposit, "maxDeposit matches the published registry");
+        assertEq(vault.whitelistEnabled(), expectedWhitelist, "whitelistEnabled matches the published registry");
+        assertEq(vault.paused(), expectedPaused, "paused matches the published registry");
+        assertEq(vault.totalSupply(), expectedSupply, "totalSupply matches the published registry");
+
+        // `open` is a summary of maxDeposit and must not be able to drift from
+        // the number it summarises.
+        assertEq(vault.maxDeposit(address(1)) > 0, expectedOpen, "the registry's open flag matches its own maxDeposit");
     }
 
     /// @notice The esKERNE findings in test/regressions are published on the

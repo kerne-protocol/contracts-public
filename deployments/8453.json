@@ -1,13 +1,17 @@
 {
   "_comment": "Kerne Protocol public address registry for Base mainnet (chain 8453). Curated public mirror: contains only on-chain-public facts (contract names, addresses, types, explorer links, verification status). Operational and internal records are kept in Kerne's working repository and are out of scope here.",
-  "lastUpdated": "2026-07-28",
+  "lastUpdated": "2026-08-06",
   "chainId": 8453,
   "chainName": "base",
   "nativeToken": "ETH",
   "admin": {
     "safe": "0x52d3E450bA6c299B1B07298F1E87DD74732D4877",
     "type": "Gnosis Safe 2-of-3",
-    "role": "Holds DEFAULT_ADMIN_ROLE on the protocol contracts"
+    "role": "Custody is SPLIT, and this field said 'Holds DEFAULT_ADMIN_ROLE on the protocol contracts' until 2026-08-06, by which point that was false. kUSD and all three PSM modules moved DEFAULT_ADMIN_ROLE to the TimelockController below in one atomic batch executed 2026-08-06 (transaction 0xed24d495789540dae543793a5d8c9d884d8abfc386c0e726084da9183933d9b8, block 49623130), so administrative changes to those four contracts now wait 48 hours in public. The Safe still holds DEFAULT_ADMIN_ROLE directly and instantly on skUSD 0x96F5102C...fA14 and on KerneVault v2 0x8ccc56B5...292B, which are NOT behind the delay. Do not read this as 'all admin rights are timelocked': skUSD alone holds roughly 88 percent of kUSD supply and its admin is still instant. Check any cell yourself with: cast call <contract> 'hasRole(bytes32,address)(bool)' 0x0000000000000000000000000000000000000000000000000000000000000000 <holder> --rpc-url https://mainnet.base.org",
+    "timelock": "0x36A14976980B7Dd33136f6613545EB0A2C0a0D72",
+    "timelockType": "OpenZeppelin TimelockController. getMinDelay() returns 172800, a 48 hour minimum delay. Holds DEFAULT_ADMIN_ROLE on kUSD and the three PSM modules. Self-administered: its own DEFAULT_ADMIN_ROLE is held by the contract itself and not by the Safe, so a canceller seat cannot be stripped in one transaction. The Safe holds PROPOSER, EXECUTOR and CANCELLER.",
+    "pauseGuardian": "0xC47adaf51907bB1871D07E18eA21dc75Ae93Cc8E",
+    "pauseGuardianType": "The emergency stop, deliberately kept outside the delay so that halting never waits 48 hours. Holds MANAGER_ROLE on the three PSM modules and can express exactly one call, pause(module), gated so that only the Safe can invoke it. No third party can pause anything."
   },
   "externalTokens": {
     "WETH": "0x4200000000000000000000000000000000000006",
@@ -34,8 +38,18 @@
     },
     "KerneVault": {
       "address": "0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B",
-      "type": "Collateral vault v2 (ERC-4626; holds kUSD MINTER_ROLE)",
-      "note": "Live deposit/mint vault deployed in the 2026-06-16 ceremony. Supersedes v1 0x8005bc7A...F2AC (retired; MINTER_ROLE revoked), which the Proof of Reserves still attests until reserves migrate. DEPOSIT STATE, stated plainly and verified on chain 2026-07-28: public WETH deposits are OPEN. maxDeposit(any address) returns 2^256-1, paused() is false, whitelistEnabled() is false, complianceHook() is the zero address, maxTotalAssets() is 0 (uncapped), and depositsEnabled() reverts because the on-chain deposit gate was written but never deployed. An earlier revision of this file said 'Public WETH deposits intentionally closed pre-launch'; that was false, and the closure it described exists only in the app interface. The live bytecode is also the unremediated pre-audit build: its verified source is byte-identical to repository commit ecc95cf7 (2026-06-15), not to the audited commit 0912c870, so all ten findings of the Hexens initial report are live on it. Closure is proposed and awaiting a second signature: a 2-of-3 Safe transaction calling setWhitelistEnabled(true), safeTxHash 0xf08a3a84f8beb6a5fcc17ebafb1a0732bd3eeebc88cf7f933baad6a56519505c at Safe nonce 18, signed 1 of 2 and NOT executed as of 2026-07-28. Bounding the exposure honestly: the vault holds no user funds, totalSupply() is 0, and no third party has ever held a share. Full disclosure with reproduction commands: https://kerne.fi/security/deployed-vs-source and audits/DEPLOYED_VS_SOURCE.md.",
+      "type": "Collateral vault v2 (ERC-4626, WETH). It does NOT hold kUSD MINTER_ROLE. This field claimed it did until 2026-08-06; that grant was revoked on 2026-08-03 and the live PSM 0xaBDE1138...9803 is the sole holder. Check with: cast call 0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3 'hasRole(bytes32,address)(bool)' 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B --rpc-url https://mainnet.base.org",
+      "depositState": {
+        "_comment": "Machine-readable, and authoritative for every deposit-state sentence in this repository. scripts/check_registry_vs_chain.py asserts all four measured fields against live Base daily in CI, and test/fork/RegistryMatchesChain.t.sol asserts the same fields from a fork. Changing the door on chain without changing this object turns the badge red within a day, and it does so in EITHER direction: a reopen that leaves this saying shut fails exactly as loudly as a closure that leaves it saying open.",
+        "open": false,
+        "readAtBlock": 49630135,
+        "readOn": "2026-08-06",
+        "maxDepositAnyAddress": "0",
+        "whitelistEnabled": true,
+        "paused": false,
+        "totalSupply": "0"
+      },
+      "note": "Live deposit/mint vault deployed in the 2026-06-16 ceremony. Supersedes v1 0x8005bc7A...F2AC (retired; MINTER_ROLE revoked), which the Proof of Reserves still attests until reserves migrate. DEPOSIT STATE is the depositState object above, which is machine-checked; read that rather than trusting this paragraph. In words, as of block 49630135 on 2026-08-06: public WETH deposits are SHUT. maxDeposit(any address) returns 0, whitelistEnabled() is true, complianceHook() is the zero address so there is no alternative approval route, paused() is false so withdrawals are untouched, and totalSupply() is 0 because no third party has ever held a share. The door was shut by a 2-of-3 Safe transaction calling setWhitelistEnabled(true), safeTxHash 0xf08a3a84f8beb6a5fcc17ebafb1a0732bd3eeebc88cf7f933baad6a56519505c at Safe nonce 18, executed 2026-07-30 in transaction 0x0be06e9a4a4ce3545fdea6af8e83ed1663e8d0ce35cb28a211836ab83a57579e at block 49318654. CORRECTION HISTORY, kept rather than overwritten, because a registry that hides its own corrections is worth less than one that shows them. Revision 1 said 'Public WETH deposits intentionally closed pre-launch'; that was false, and the closure it described existed only in the app interface. Revision 2, written 2026-07-28, said deposits were OPEN and called revision 1 false; it was accurate on the day it was written, was superseded two days later by the transaction above, and then sat stale for nine days while four other files in this same repository correctly said the opposite. This is revision 3. A reader is entitled to note that this entry has now been wrong in both directions inside ten days, and there is no way to make that look good. What was done about it instead: the daily job that used to compare only dates now makes four on-chain calls and fails the build when this file and the chain disagree, whichever way they disagree, so a revision 4 of the same kind is caught within a day rather than in someone else's diligence. INTENT, so that shut is not mistaken for the resting position: the live bytecode is the unremediated pre-audit build, byte-identical to repository commit ecc95cf7 (2026-06-15) rather than to the audited commit 0912c870, so all ten findings of the Hexens initial report are live against it. Reopening is gated on deploying and verifying the remediated build, not on flipping a configuration flag, under the standing rule of remediated bytecode before capital. Full disclosure with reproduction commands: https://kerne.fi/security/deployed-vs-source and audits/DEPLOYED_VS_SOURCE.md.",
       "explorer": "https://basescan.org/address/0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B"
     },
     "KERNE": {
