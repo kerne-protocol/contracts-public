@@ -60,7 +60,7 @@ here. **A failure in a `test_KNOWN_` case is good news.**
 |---|---|---|---|
 | Buyback slippage floor derived from a same-transaction pool quote | Dmitriy Filatov | 2026-07-14 | Fixed in source, not on chain. Unreachable: no inventory, no keeper, no venue |
 | Denial of service in the yield oracle's multi-party consensus path | @Olamdeen | 2026-07-04 | Fixed in source. Live oracle records nothing through this path |
-| Insurance-fund accounting gap on untracked injections | Kor_HaeTae (Suil Yoon) | 2026-07-04 | Fixed in source, pending redeploy. Fund is empty |
+| Insurance-fund accounting gap on untracked injections | Kor_HaeTae | 2026-07-04 | Fixed in source, pending redeploy. Fund is empty |
 | Forfeiture-on-exit bypass on the escrowed-KERNE vesting path | SpokoDev (Yaroslav Hrydkovets) | 2026-06-23 | Fixed in source. Escrow never funded |
 | Vesting-accounting review of the escrowed-KERNE path | Jay | 2026-06-24 | Fixed in source. Escrow never funded |
 | Stale-quote handling in the mint flow | Ekankaar | 2026-06-25 | Fixed and live |

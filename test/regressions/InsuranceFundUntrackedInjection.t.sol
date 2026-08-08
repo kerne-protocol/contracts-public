@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 // KRN-26-INS-INJECT-UNTRACKED
 // Insurance-fund accounting gap on untracked injections
 //
-// Reported by:  Kor_HaeTae (Suil Yoon), 2026-07-04, to kerne.systems@protonmail.com
+// Reported by:  Kor_HaeTae, 2026-07-04, to kerne.systems@protonmail.com
 // Credited at:  https://kerne.fi/security/acknowledgments  (public credit given
 //               with the researcher's consent, 2026-07-13)
 // Status:       Fixed in source, pending redeploy. Unreachable on the live
