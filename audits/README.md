@@ -10,6 +10,7 @@ This directory publishes external audit reports as they land. Each report is com
 |---|---|
 | Reviewer | [Hexens](https://hexens.io), lead security researcher Trung Dinh |
 | Report | [`hexens-kerne-protocol-final-2026-07-31.pdf`](hexens-kerne-protocol-final-2026-07-31.pdf) (29 pages, 8,269,537 bytes) |
+| Published by the auditor | [hexens.io/audit-reports/kerne-protocol-july-2026](https://hexens.io/audit-reports/kerne-protocol-july-2026), the same review hosted by Hexens rather than by Kerne |
 | SHA-256 | `655e7126030c750e9d58f2ab30b58215ce604942f06997d5c01532d6f687a4ca` |
 | Commit reviewed | `0912c870a89f1fa707f69c60fc05c05ea85e2fa8`, frozen before fieldwork began |
 | Scope | five contracts: `kUSD.sol`, `skUSD.sol`, `KUSDPSM.sol`, `KerneVault.sol`, `esKERNE.sol`, published verbatim in [`scope/`](scope/) |
