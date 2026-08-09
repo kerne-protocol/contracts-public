@@ -333,7 +333,13 @@ the same address that deployed the timelock and that we publish as ours:
 
 The kUSD escrow vault is now the registered singleton in Euler's `EscrowedCollateralPerspective`, so
 any future Edge market using kUSD as collateral reuses this exact vault rather than creating a second
-one.
+one. All three relevant Euler perspectives return `isVerified` true for it, `edgeFactoryPerspective`,
+`escrowedCollateralPerspective` and `evkFactoryPerspective`, which means Euler's own tooling
+recognises it as an Edge market rather than an unaffiliated contract that happens to use their code.
+
+Total cost of both transactions was 0.000024064 ETH, about five cents. That is worth saying out loud:
+**the deployment was free, and a free thing that anyone can do is worth nothing by itself.** The
+market is a precondition for a credit decision, not evidence of one.
 
 | parameter | value | enforced by |
 |---|---|---|
