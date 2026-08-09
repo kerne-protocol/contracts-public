@@ -315,15 +315,25 @@ The full record is at `forum.euler.finance/t/1849`. We have not edited or delete
 
 A permissionless Euler v2 Edge market. Kerne deploys it and holds no governance over it afterwards.
 
-> **Deployment status at the time of writing: specified, simulated, NOT YET DEPLOYED.** The
-> transactions are built and gated, and the whole configuration below has been executed successfully
-> against a fork of live Base state (results in the paragraph after the table). It is not on mainnet
-> yet because the deploy is signed on a hardware wallet and the device was not connected when this
-> memo was dated. **When the addresses below are still absent, the market does not exist.** We would
-> rather ship a memo that says so than one with blank fields in it. This section is updated in place,
-> and the file history in `contracts-public` shows when.
+**Deployed 2026-08-09, Base block 49,726,126.** Verified after the fact on two independent RPCs.
 
-*Addresses: pending deployment.*
+| | address |
+|---|---|
+| USDC vault, borrowable, `eUSDC-116` | `0xe87c294E1139C31770727193e3Be0ccEd73d6AA3` |
+| kUSD vault, escrow collateral, `ekUSD-1` | `0xD3800ceb6bBeB90101ed5d5A46017fE846c9509e` |
+| EulerRouter | `0xB95407727d33fB2E444966fd0B7D0E7767Ce019E` |
+| Oracle, `FixedRateOracle(kUSD, USDC, 1000000)` | `0x8f27228f02E798c17B7d6b270F32F8EC6afDD2D3` |
+| EdgeFactory that built it | `0x4B930F0222349c2092b8531A42295262cc4F0e4A` |
+
+Two transactions, both from the founder hardware wallet `0x14f04cE02f35B29Af564A98544dD7e2393993946`,
+the same address that deployed the timelock and that we publish as ours:
+
+- oracle, block 49,726,114, `0xbacaf5445effce5d32b57ee512ab54123306e24de437ab93dac36e3ca024c9ad`
+- market, block 49,726,126, `0xcda40c26a970869efef971912a39b2ac7acae68b647ed2d54d72453f6380bef7`
+
+The kUSD escrow vault is now the registered singleton in Euler's `EscrowedCollateralPerspective`, so
+any future Edge market using kUSD as collateral reuses this exact vault rather than creating a second
+one.
 
 | parameter | value | enforced by |
 |---|---|---|
