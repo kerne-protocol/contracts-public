@@ -11,4 +11,6 @@ PRs are welcome for these narrow categories:
 
 For anything else, please open an issue describing the change and a maintainer will route it through the canonical repo.
 
+`main` requires signed commits, so a merge into it must be signed. You do not need to sign your own commits to open a PR: maintainers merge through GitHub, which signs the resulting merge commit. If you would like your individual commits to carry your own signature, GitHub's guide to [signing commits](https://docs.github.com/authentication/managing-commit-signature-verification/signing-commits) covers both SSH and GPG. See [`docs/COMMIT_SIGNING.md`](docs/COMMIT_SIGNING.md) for how the rule is configured here and how to verify it.
+
 For security issues, do **not** open a public issue. Email kerne.systems@protonmail.com per [`SECURITY.md`](SECURITY.md).

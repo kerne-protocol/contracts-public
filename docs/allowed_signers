@@ -1,0 +1,18 @@
+# OpenSSH allowed_signers for kerne-protocol/contracts-public.
+#
+# This file lets you verify the commit signatures in this repository yourself,
+# offline, without asking GitHub whether it thinks a commit is verified.
+#
+#   git -c gpg.ssh.allowedSignersFile=docs/allowed_signers verify-commit HEAD
+#
+# See docs/COMMIT_SIGNING.md for the full walkthrough, the fingerprint to check
+# this key against, and what is deliberately NOT covered by it.
+#
+# Key fingerprint: SHA256:8CT6w3pVOQn2TnP3l5vVoChMOvePDpeYcfbU3R2iQT4
+# Registered as a signing key on the GitHub account that owns this repository.
+# Both principals below are the same key. Commits in this repository carry the
+# neutral author identity and a GitHub-routable committer identity, and git will
+# check the signature against either one.
+
+kerne.systems@protonmail.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCnQ2xBeJTmmR96ABrJuW6yeo9SV3GxrvsTBB2GtTWn
+157988761+enerzy17@users.noreply.github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCnQ2xBeJTmmR96ABrJuW6yeo9SV3GxrvsTBB2GtTWn

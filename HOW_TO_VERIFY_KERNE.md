@@ -203,6 +203,25 @@ Kerne has completed its first external smart-contract audit. Hexens reviewed fiv
 
 If you find a vulnerability, use the disclosure path on `kerne.fi/security`. If you find a transparency or claims bug, the same address works.
 
+### 9. Provenance of this repository itself
+
+Everything above tells you how to check Kerne's claims against the chain. This section is about checking the repository you are reading them in. `deployments/8453.json` is the canonical address registry and is the file DefiLlama's kUSD entry points at, so "which addresses does this file name" is a question worth having provenance on.
+
+Commits on `main` after `32f4273d` are SSH-signed, and `main` rejects unsigned pushes. Check the tip against GitHub:
+
+```bash
+curl -s https://api.github.com/repos/kerne-protocol/contracts-public/commits/main | jq '.commit.verification'
+```
+
+Or verify offline, without trusting GitHub's answer, using the public key committed at `docs/allowed_signers`:
+
+```bash
+git -c gpg.ssh.allowedSignersFile=docs/allowed_signers verify-commit HEAD
+git -c gpg.ssh.allowedSignersFile=docs/allowed_signers log --format='%G? %h %s' -- deployments/8453.json
+```
+
+Every line in that second command's output must begin with `G` for commits after the boundary. The key fingerprint to pin is `SHA256:8CT6w3pVOQn2TnP3l5vVoChMOvePDpeYcfbU3R2iQT4`. Full walkthrough, including what this deliberately does not cover, in [`docs/COMMIT_SIGNING.md`](docs/COMMIT_SIGNING.md).
+
 ---
 
 ## What "verified" does NOT mean
@@ -213,6 +232,7 @@ Running this verification confirms that what Kerne claims about its own state ma
 - That the smart contracts are free of bugs. One external review of a specific commit is not a proof of correctness, two of its findings were acknowledged rather than fixed, and the live vault bytecode predates the reviewed commit.
 - That an off-chain venue (Hyperliquid, Binance, etc.) will remain solvent or accessible. Off-chain risk is real and itemized in the `triggers.offChain` array of `/api/risk-status`.
 - That Kerne governance will not act maliciously. Only the 2-of-3 Safe gates on-chain admin actions, and that protection is exactly as strong as the three signers' opsec.
+- That the address registry cannot be rewritten. Commit signing and branch protection (section 9) mean a rewrite has to be signed by a key held off GitHub, or else leave an unsigned commit and a rejected push behind it. Both controls are administered by the same account that publishes the repository, so they raise the cost of a silent rewrite and make an attempted one visible. Neither makes one impossible.
 
 The verification above narrows the question to "are the published numbers honest right now?" That is a smaller question than "is Kerne safe?" but it is a necessary first step.
 

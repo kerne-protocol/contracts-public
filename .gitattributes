@@ -4,3 +4,4 @@ test/** text eol=lf
 *.toml text eol=lf
 remappings.txt text eol=lf
 *.yml text eol=lf
+docs/allowed_signers text eol=lf
