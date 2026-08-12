@@ -307,7 +307,48 @@ He also found things we had wrong, and this is the part a curator should weigh m
   rather state than leave implicit, is that a monitor still hands a holder nothing to do at hour 47,
   because `CANCELLER_ROLE` is the Safe and nobody else. There is no seat outside the operator set.
 
-The full record is at `forum.euler.finance/t/1849`. We have not edited or deleted a post in it.
+The full record is at `forum.euler.finance/t/1849`. We have not edited or deleted a post in it. Two
+post numbers, 13 and 14, are absent from the public thread; post 15 opens by apologising for one of
+them as a draft from another thread pasted by mistake. We cannot remove a post there and have not
+asked anyone to.
+
+### Addendum, 2026-08-11. He closed the thread, and here is what he closed it with.
+
+This section was written on 2026-08-08. Three days later it is out of date in one direction that
+matters and one that does not, so rather than rewrite it we are appending the difference.
+
+**He posted once more, on 2026-08-09, and stood down.** In his words, verbatim:
+
+> "stepping back, since this thread has reached a natural boundary. what it established: the
+> canonical solvency read is the PSM ratio, excluding off-chain assets; the hyperliquid balance is
+> publicly readable and signed by the account itself, but completeness of the account set is not
+> provable on-chain. negative funding is absorbed by venue margin with no insurance fund and no
+> automatic close; the minter set was narrowed to one. mint and psm admin moved behind a 48h timelock
+> with an instant scoped pause guardian. what remains open is documented in the thread: the canceller
+> seat, queue monitoring, the exposure floor, the pending-ops check on the mint path, exit-open as a
+> property. those are build items now, not open questions. [...] nothing further from me until there
+> is new on-chain state to verify"
+
+He also re-read the live mint PSM source on BaseScan the same day and got an exact match: `KUSDPSM`,
+`v0.8.24+commit.e11b9ed9`, optimizer 1000 runs, cancun, both read and write tabs present. That closes
+a separate item he had raised on 2026-08-07, that the live mint PSM was unverified on the default
+Base explorer so a reviewer opening it would see only raw bytecode.
+
+**Read the open list as five items, not two.** The version above says two, because on 2026-08-07
+those were the two he had named. His closing post names five: the canceller seat, queue monitoring,
+the exposure floor, the pending-operations check on the mint path, and exit-open as a property. Only
+one of the five has moved since:
+
+- **Queue monitoring is half closed.** `kerne.fi/timelock` and `kerne.fi/api/timelock` shipped
+  2026-08-10. They recompute the queue from Base on request and the API answers 503 rather than an
+  empty queue when the read fails. That closes the observation half only. It creates no canceller
+  outside the operator set and it pages Kerne, not you.
+- **The other four are not built.** No date is offered for any of them, which is the same position
+  this memo takes everywhere else.
+
+The complete record of every check on Kerne performed by somebody who is not Kerne, this thread
+included, with each reviewer's open items published at the same weight as their conclusions, is at
+`kerne.fi/security/independent`.
 
 ---
 
