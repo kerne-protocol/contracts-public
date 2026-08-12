@@ -67,6 +67,8 @@ git -c gpg.ssh.allowedSignersFile=docs/allowed_signers \
   log --format='%G? %h %an %s' -- deployments/8453.json
 ```
 
+Expect `N` on every entry in that output dated before 2026-08-12, including the most recent edit to the registry as of this writing. That is not a failure, it is section 4: the registry has a long history and signing starts partway through it. What matters is that no line after the boundary commit reads anything other than `G`.
+
 ## 3. The obvious objection, answered
 
 **"The key is published in the same repository as the commits it signs, by the same person. An attacker who can rewrite the registry can rewrite `allowed_signers` too."**
