@@ -135,6 +135,22 @@ cast call $PSM "currentExposure(address)(uint256)" $USDC --rpc-url $RPC
 
 Compare against `curl -s https://app.kerne.fi/api/psm-status | jq .gates`. Discrepancy = bug.
 
+**Capacity: how much the module will still take.** The last two calls above are the ones that answer it, and the subtraction is not quite the obvious one. The cap does not bind on `currentExposure` alone. `KUSDPSM.sol` binds it on `max(currentExposure, balanceOf(module))`, a 2026-06-07 fix for the case where a redemption larger than the tracked counter floors that counter to zero while the module still holds the stable. Deriving headroom from the counter alone would over-state it in exactly that case.
+
+```
+headroom = stableCaps(USDC) - max(currentExposure(USDC), USDC.balanceOf(PSM))
+```
+
+Read at block 49,930,000 on 2026-08-13: cap `10000000000000`, exposure `30000000`, balance `30000000`, so headroom is `9999970000000`, which is **9,999,970 USDC**. Note that the getter is `stableCaps` and it takes the stable's address as an argument. `stableCap`, `cap`, `mintCap`, `maxMint` and `supplyCap` all revert on this contract, and an internal review that probed those five once concluded the cap was unreadable. It is readable; it takes an argument.
+
+You do not have to take the consequence on faith either. `test/fork/PsmCapacityIsReal.t.sol` forks Base at that block, deals one million USDC to an address that has never touched Kerne, mints through the deployed bytecode and asserts what comes back. It then walks the figure to its edge: a mint of exactly 9,999,970 USDC succeeds and one USDC more reverts `StableCapExceeded()` (`0x40e97e29`), which is what makes the number a bound rather than a claim.
+
+```bash
+BASE_RPC_URL=https://mainnet.base.org forge test --match-path 'test/fork/PsmCapacityIsReal.t.sol' -vv
+```
+
+Nine tests. Like every file under `test/fork`, it is opt-in: without `BASE_RPC_URL` it prints `SKIPPED` and passes, so a clean clone with no network never goes red. The plain-language version, with the same commands and the disclosures that belong beside the number, is at <https://kerne.fi/dossier/capacity>.
+
 **Key-rotation proof.** The same `hasRole` call, run against all three PSM instances, shows that mint authority moved and that the retired instances cannot mint. Run all four:
 
 ```bash
@@ -143,31 +159,43 @@ MINTER=$(cast keccak "MINTER_ROLE")
 cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER $PSM        --rpc-url $RPC  # expect true
 cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER $OLD_PSM_V3 --rpc-url $RPC  # expect false
 cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER $OLD_PSM_V1 --rpc-url $RPC  # expect false
-# The only other MINTER_ROLE holder is KerneVault v2:
-cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B --rpc-url $RPC  # expect true
+# KerneVault v2 held MINTER_ROLE until 2026-08-03, when it was revoked:
+cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B --rpc-url $RPC  # expect false
 ```
 
-kUSD `MINTER_ROLE` is held today by exactly two contracts: KerneVault v2 and the live PSM above. Both retired PSM instances return `false` by design and a mint call against either reverts. If any of those four reads returns something other than the expected value, that is a bug and we want the report.
+kUSD `MINTER_ROLE` is held today by exactly one contract, the live PSM above. Both retired PSM instances return `false` by design and a mint call against either reverts. KerneVault v2 returns `false` too, since 2026-08-03. Until 2026-08-13 this paragraph said the role was held by two contracts and told you to expect `true` for the vault, which stopped being correct on 2026-08-03 and would have made a reader following these instructions think the document was wrong about everything else as well. If any of those four reads returns something other than the expected value, that is a bug and we want the report.
 
 KUSDPSM v3 `0x07eBb486...5993` is nonetheless still a live-funds contract: it is retained as a redeem-only reserve, and its USDC balance still backs the kUSD that was minted through it until reserves migrate, which is why `/api/por` sums it into the backing total. Do not read its presence in the reserve total as evidence it can still mint.
 
 ### 5. Multisig governance
 
-The 2-of-3 Safe at `0x52d3E450bA6c299B1B07298F1E87DD74732D4877` holds `DEFAULT_ADMIN_ROLE` on every Kerne contract. You can verify each role grant directly.
+Custody is split, and this section said "the Safe holds `DEFAULT_ADMIN_ROLE` on every Kerne contract" until 2026-08-13, by which point that was false. On 2026-08-06 `DEFAULT_ADMIN_ROLE` on kUSD and on all three PSM modules moved to a TimelockController at `0x36A14976980B7Dd33136f6613545EB0A2C0a0D72` with a 48 hour minimum delay, so administrative changes to those four contracts now wait in public. The 2-of-3 Safe at `0x52d3E450bA6c299B1B07298F1E87DD74732D4877` still holds it directly and instantly on skUSD and on KerneVault v2, which are not behind the delay. Do not read this as "all admin rights are timelocked". You can verify each role grant directly.
 
 ```bash
 SAFE=0x52d3E450bA6c299B1B07298F1E87DD74732D4877
 VAULT=0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B   # KerneVault v2 (live)
 RPC=https://mainnet.base.org
 
-# DEFAULT_ADMIN_ROLE is 0x00...00 (32 zero bytes)
-cast call $VAULT "hasRole(bytes32,address)(bool)" 0x0000000000000000000000000000000000000000000000000000000000000000 $SAFE --rpc-url $RPC
+TIMELOCK=0x36A14976980B7Dd33136f6613545EB0A2C0a0D72
+KUSD=0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3
+PSM=0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803
+ADMIN=0x0000000000000000000000000000000000000000000000000000000000000000  # 32 zero bytes
+
+# Still the Safe, instantly:
+cast call $VAULT "hasRole(bytes32,address)(bool)" $ADMIN $SAFE     --rpc-url $RPC  # expect true
+
+# Behind the 48 hour delay. The Safe is NOT the admin of these:
+cast call $KUSD  "hasRole(bytes32,address)(bool)" $ADMIN $SAFE     --rpc-url $RPC  # expect false
+cast call $KUSD  "hasRole(bytes32,address)(bool)" $ADMIN $TIMELOCK --rpc-url $RPC  # expect true
+cast call $PSM   "hasRole(bytes32,address)(bool)" $ADMIN $TIMELOCK --rpc-url $RPC  # expect true
+cast call $TIMELOCK "getMinDelay()(uint256)"                       --rpc-url $RPC  # expect 172800
+
 # Confirm Safe threshold and signer count
 cast call $SAFE "getThreshold()(uint256)" --rpc-url $RPC
 cast call $SAFE "getOwners()(address[])"  --rpc-url $RPC
 ```
 
-Expected: `true`, `2`, and an array of 3 signer addresses.
+Expected: `true`, `false`, `true`, `true`, `172800`, `2`, and an array of 3 signer addresses. The Safe holds PROPOSER, EXECUTOR and CANCELLER on the timelock, so it still decides what is scheduled; the delay governs when, not who.
 
 ### 6. Geographic restriction policy
 
