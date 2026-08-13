@@ -184,7 +184,9 @@ contract PsmCapacityIsRealTest is KerneTest {
         assertEq(IErc20Like(USDC).balanceOf(depositor), 0, "and the USDC left the depositor");
 
         assertEq(psm.currentExposure(USDC), exposureBefore + amount, "exposure rises by the GROSS deposit");
-        assertEq(psm.stableCaps(USDC) - psm.currentExposure(USDC), PUBLISHED_HEADROOM - amount, "headroom falls by the same");
+        assertEq(
+            psm.stableCaps(USDC) - psm.currentExposure(USDC), PUBLISHED_HEADROOM - amount, "headroom falls by the same"
+        );
     }
 
     // ── The edge ─────────────────────────────────────────────────────────────
