@@ -1,6 +1,8 @@
 # Deployed vs source: state disclosure
 
-For reviewers and audit firms. Last updated 2026-07-31. Mirrors the canonical web version at [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source), which carries the July 30, 2026 closure described in row 1. This file may run slightly ahead of the page after a mirror-side correction; that direction is the safe one, and it is the direction the CI check permits.
+For reviewers and audit firms. Last updated 2026-08-13. Mirrors the canonical web version at [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source), which carries the July 30, 2026 closure described in row 1. This file may run slightly ahead of the page after a mirror-side correction; that direction is the safe one, and it is the direction the CI check permits.
+
+**Every row below was re-read against chain at Base block 49932056 on 2026-08-13**, which is what moved the date. No row changed state. The re-read confirmed: the vault's `totalSupply()` is still 0 and `depositsEnabled()` still reverts while `whitelistEnabled()` is true and `maxDeposit()` returns 0 for every address; `BURNER_ROLE()` still reverts on kUSD while `MINTER_ROLE()` returns a valid hash; and the distributor still holds 0 ETH, 0 USDC and 0 kUSD with `ROOT_UPDATE_TIMELOCK()` still reverting. A full module-by-module table of the live reads, with the command behind every cell, is published at [kerne.fi/security/module-map](https://kerne.fi/security/module-map).
 
 On any young protocol the repository moves faster than the chain. This document is the canonical table of every place where Kerne's deployed bytecode behaves differently from the current source. It was first published before any external review began, and it is where the gap between the audited commit and the deployed contracts is stated, so a reviewer reading the code finds context here rather than surprises there.
 
@@ -84,6 +86,30 @@ BASE_RPC_URL=https://mainnet.base.org forge test --match-path 'test/fork/*'
 **skUSD immediate-distribution (self-found High, 2026-05-28).** The prior staking vault credited each yield distribution to the share price atomically, so a depositor could bracket a distribution within a single block (deposit, distribute, redeem) and capture a share of it. The 2026-07-03 redeploy to the live skUSD `0x96F5102C15b839757f811A98CEc3725Ac21DfA14` deployed the streaming source: distributed yield now vests linearly over `yieldVestingPeriod` (86400 seconds / 24 hours on chain, floored at `MIN_VESTING_PERIOD` = 1 hour) and the still-unvested portion is excluded from `totalAssets()` via `lockedYield()`, so a single-block flash deposit captures none of it. This is checkable directly against the deployed bytecode (Sourcify runtime match; source mirrored at [`../contracts/skUSD/src/skUSD.sol`](../contracts/skUSD/src/skUSD.sol)) and by reading `yieldVestingPeriod()` on chain. Deployed now matches source, so the row has left the table above. skUSD was in the Hexens core audit scope and drew no findings; the final report published on July 31, 2026.
 
 ## Not a divergence, but read it before you file one
+
+**Added 2026-08-13: skUSD reports 24 decimals against an 18 decimal asset. This is deliberate and it is the single most likely thing on this system to be integrated wrong.**
+
+`skUSD.decimals()` returns **24**. Its ERC-4626 `asset()` is kUSD, which returns **18**. ERC-4626 permits a share token to use a different decimal precision from its asset, and skUSD uses a fixed **1e6 offset** so that share arithmetic keeps precision at small balances. Nothing about it is a bug and there is nothing to fix, but any integrator, wallet, aggregator or lending market that assumes an ERC-4626 share matches its asset's decimals will misprice skUSD by **six orders of magnitude**, and that assumption is common enough that this is stated here rather than left to be discovered during a listing.
+
+Read the conversion, never the ratio of raw integers:
+
+```bash
+SKUSD=0x96F5102C15b839757f811A98CEc3725Ac21DfA14
+RPC=https://mainnet.base.org
+
+cast call $SKUSD "decimals()(uint8)"  --rpc-url $RPC   # 24, NOT 18
+cast call $SKUSD "asset()(address)"   --rpc-url $RPC   # kUSD, which is 18
+
+# One WHOLE skUSD is 1e24 base units, not 1e18.
+cast call $SKUSD "convertToAssets(uint256)(uint256)" 1000000000000000000000000 --rpc-url $RPC
+#   -> 1000098667771066974        = 1.000098667771066974 kUSD  (correct: ~1.0001)
+
+# Feeding 1e18, the amount that would be one whole share on an 18 decimal vault:
+cast call $SKUSD "convertToAssets(uint256)(uint256)" 1000000000000000000 --rpc-url $RPC
+#   -> 1000098667771              = 0.000001000098667771 kUSD  (exactly a millionth of the line above)
+```
+
+Both reads above are from Base block 49932056, 2026-08-13. `convertToAssets` is the only correct way to price skUSD; the value moves as yield vests, so any hardcoded ratio is wrong the moment it is written.
 
 **KerneTreasury v3 `0x5343C41d4FF2B61DAacA9cbC050550C40605B075`** is the live treasury and the address the live mint PSM returns from `treasury()`. It has **no published source** on BaseScan, Sourcify or Blockscout as of 2026-07-28, so it cannot be diffed on an explorer the way the three rows above can be, which is why it is not one of them. That is a statement about verifiability, not a claim that its bytecode matches current source: where a behavioural gap does exist, it is stated below. It holds no protocol assets (0 ETH, 0 WETH, 0 USDC, 0 KERNE) and its `owner()` is the 2-of-3 Safe. The retired v2 `0x7c07517A...60d5` is source-verified and is what the `contracts/KerneTreasury/` bundle in this repo mirrors. Both are recorded in [`../deployments/8453.json`](../deployments/8453.json), and the unverified status is disclosed in the [root README](../README.md) and [`SCOPE.md`](SCOPE.md).
 

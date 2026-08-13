@@ -82,7 +82,7 @@ userAPY        = afterInsurance × (1 − PROTOCOL_FEE_GENESIS)
 
 Terms:
 
-- `leverage` is **published live in `sources.leverage`; this document does not assume a value, read the one the engine is actually running.** The strategy's design leverage is dynamic and funding-linked (target `clamp(1.5 + fundingAPR × 10, 1.5, 12.0)`, mirroring the hedge engine `bot/engine.py`: `MIN_LEVERAGE = 1.5`, `MAX_LEVERAGE = 12.0`), with 3.0 the ceiling it targets in a healthy bull-funding regime. Use whatever `sources.leverage` reports at the moment you check; do not hardcode 3.0 or any other constant.
+- `leverage` is **published live in `sources.leverage`; this document does not assume a value, read the one the engine is actually running.** The strategy's design leverage is dynamic and funding-linked (target `clamp(1.5 + fundingAPR × 10, 1.5, 12.0)`, with `MIN_LEVERAGE = 1.5` and `MAX_LEVERAGE = 12.0` in the hedge engine, which lives in Kerne's private operations repository rather than in this one), with 3.0 the ceiling it targets in a healthy bull-funding regime. Use whatever `sources.leverage` reports at the moment you check; do not hardcode 3.0 or any other constant.
 - `STRATEGY_COST_FRACTION = 0.2232` (trading 6.08 + slippage 6.84 + gas 2.28 + margin 7.12 = 22.32%)
 - `INSURANCE_ALLOCATION_DEFAULT = 0.10` (Dynamic Insurance Fund default; range 500-2500 bps)
 - `PROTOCOL_FEE_GENESIS = 0.00` (Genesis phase, TVL < $100k)
@@ -105,7 +105,9 @@ Plug in the live leverage from `sources.leverage` rather than a hardcoded consta
 
 ### 3. Risk triggers and exit policy
 
-The chapter at `kerne.fi/docs/exit-triggers-and-emergency-runbook` cites every wired threshold by source identifier. The endpoint at `kerne.fi/api/risk-status` mirrors the same thresholds with their live values. The drift-guard test suite at `bot/tests/test_threshold_constants.py` asserts the chapter values equal the bot constants in CI.
+The chapter at `kerne.fi/docs/exit-triggers-and-emergency-runbook` cites every wired threshold by source identifier. The endpoint at `kerne.fi/api/risk-status` mirrors the same thresholds with their live values, and a drift-guard test asserts the chapter values equal the hedge-engine constants in CI.
+
+> **Scope note.** The hedge engine and its test suite live in Kerne's private operations repository, not in this one. Earlier revisions of this document cited `bot/tests/test_threshold_constants.py` and `bot/engine.py` as if you could open them here; you cannot, and no path beginning `bot/` or `frontend/` exists in this repository. What is independently checkable without that repository is the endpoint below, which serves the same thresholds the engine runs on, plus the `gaps` array that names every threshold the deployed bytecode does not expose. Verify against the endpoint and the chain, not against a file you cannot read.
 
 ```bash
 # Live thresholds + drift-aware gaps
@@ -166,6 +168,26 @@ cast call $KUSD "hasRole(bytes32,address)(bool)" $MINTER 0x8ccc56B5624e2FDB592F6
 kUSD `MINTER_ROLE` is held today by exactly one contract, the live PSM above. Both retired PSM instances return `false` by design and a mint call against either reverts. KerneVault v2 returns `false` too, since 2026-08-03. Until 2026-08-13 this paragraph said the role was held by two contracts and told you to expect `true` for the vault, which stopped being correct on 2026-08-03 and would have made a reader following these instructions think the document was wrong about everything else as well. If any of those four reads returns something other than the expected value, that is a bug and we want the report.
 
 KUSDPSM v3 `0x07eBb486...5993` is nonetheless still a live-funds contract: it is retained as a redeem-only reserve, and its USDC balance still backs the kUSD that was minted through it until reserves migrate, which is why `/api/por` sums it into the backing total. Do not read its presence in the reserve total as evidence it can still mint.
+
+**Before you integrate skUSD, read its decimals.** `skUSD.decimals()` returns **24**, while its ERC-4626 `asset()` is kUSD at **18**. That is a deliberate fixed 1e6 offset, not a defect, but it is the single most likely thing on this system to be integrated wrong, because assuming a vault share matches its asset's decimals is a common and usually safe assumption. Here it misprices skUSD by a factor of one million.
+
+```bash
+SKUSD=0x96F5102C15b839757f811A98CEc3725Ac21DfA14
+RPC=https://mainnet.base.org
+
+cast call $SKUSD "decimals()(uint8)" --rpc-url $RPC   # 24
+cast call $SKUSD "asset()(address)"  --rpc-url $RPC   # kUSD, which reports 18
+
+# One WHOLE skUSD is 1e24 base units. This is the correct read.
+cast call $SKUSD "convertToAssets(uint256)(uint256)" 1000000000000000000000000 --rpc-url $RPC
+#   -> 1000098667771066974   = 1.000098667771066974 kUSD
+
+# 1e18, the amount that would be one whole share on an 18 decimal vault, is a millionth of that.
+cast call $SKUSD "convertToAssets(uint256)(uint256)" 1000000000000000000 --rpc-url $RPC
+#   -> 1000098667771         = 0.000001000098667771 kUSD
+```
+
+Always price skUSD through `convertToAssets`. The value accrues as yield vests, so any hardcoded ratio is wrong the moment it is written. Both reads above are from Base block 49932056 on 2026-08-13.
 
 ### 5. Multisig governance
 
