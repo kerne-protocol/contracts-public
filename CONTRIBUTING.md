@@ -13,4 +13,6 @@ For anything else, please open an issue describing the change and a maintainer w
 
 `main` requires signed commits, so a merge into it must be signed. You do not need to sign your own commits to open a PR: maintainers merge through GitHub, which signs the resulting merge commit. If you would like your individual commits to carry your own signature, GitHub's guide to [signing commits](https://docs.github.com/authentication/managing-commit-signature-verification/signing-commits) covers both SSH and GPG. See [`docs/COMMIT_SIGNING.md`](docs/COMMIT_SIGNING.md) for how the rule is configured here and how to verify it.
 
+Secret scanning push protection is on for this repository, so a push carrying something that looks like a live credential is rejected before it lands. If that happens, remove the secret and rewrite the commit rather than asking for a bypass.
+
 For security issues, do **not** open a public issue. Email kerne.systems@protonmail.com per [`SECURITY.md`](SECURITY.md).
