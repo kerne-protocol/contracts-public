@@ -446,6 +446,69 @@ no curator behind it, and because you would find it in five minutes.
 
 The market existing is not the ask. A credit decision is the ask.
 
+### Addendum, 2026-08-14. We seeded it ourselves, and that is not the same as somebody wanting it.
+
+This section was written on 2026-08-08, when the market held nothing. It now holds something, all of
+it ours, so rather than rewrite the section we are appending the difference.
+
+On 2026-08-14 Kerne supplied the market from the same disclosed founder hardware wallet that deployed
+it, `0x14f04cE02f35B29Af564A98544dD7e2393993946`. Read at Base block **49,970,398** on two independent
+RPCs with no disagreement:
+
+| | |
+|---|---|
+| USDC supplied | 50.000002 |
+| USDC borrowed | 20.000002 |
+| USDC available | 30.000000 |
+| kUSD escrow collateral | 80.000000 |
+| utilization | 40.0000% |
+| borrow APR / APY | 2.5880% / 2.6218% |
+| third-party supply | 0.000000 |
+
+Seven transactions, all status 1, blocks 49,969,919 through 49,970,338:
+`0x1aee973daf29c954c3d0b32e35c15f23a0be57addaad3917cb10d415d9d49377`,
+`0x656cfb9b0bb793736b0d7de9c88817ec54107fb36153563ff26024f8fd907f47`,
+`0xbc1c950f4494bfb30816aa2da9958a23b2c41d20d34136e3342a5f3e6bb10445`,
+`0x746e7a69d05ad4cfbff3881e3663b074df457c258026cfabcb5cb6ca546c959a`,
+`0xe4f4e86b463350370a1eff0367d769974d5973e9f669e0544ee68dc39b7679b8`,
+`0x20df2a171ca21a8e7118bd4cc5acceee20cb9018dc63ac5366d0d52899de163e`,
+`0xca98abfe227c1a17d7a473128a6f8e533ddb13f9d82cac39e792d7c9883748b8`.
+
+**This is a seed and it is not demand.** Every dollar in that market is ours. Nobody paid to be there,
+nobody was solicited, and no counterparty supplied anything. We did it so the venue could be shown
+working rather than described: before this the interest rate model had never priced a real
+utilization, the oracle had never been consulted in anger, and there was no borrow rate to read. Now
+there is. What has not changed is the only thing that would matter to you, which is whether anyone
+other than Kerne wants to lend against kUSD. That number is still zero and we are not going to dress
+it up.
+
+**Do not take the attribution from this document.** `kerne.fi/api/euler` measures our own position on
+chain on every request and publishes the total minus it, so a third party shows up on its own line
+the moment one exists, and this paragraph cannot go stale in our favour. Reproduce it yourself:
+
+```
+cast call 0xe87c294E1139C31770727193e3Be0ccEd73d6AA3 "totalAssets()(uint256)" --rpc-url https://mainnet.base.org
+cast call 0xe87c294E1139C31770727193e3Be0ccEd73d6AA3 "balanceOf(address)(uint256)" 0x14f04cE02f35B29Af564A98544dD7e2393993946 --rpc-url https://mainnet.base.org
+```
+
+Put the second through `convertToAssets(uint256)` and subtract. Repeat on the collateral vault
+`0xD3800ceb6bBeB90101ed5d5A46017fE846c9509e`. The remainder is everybody who is not us.
+
+**On our own rule, because we would rather you heard it here.** Kerne publishes a signed enumeration
+of every account it controls at `kerne.fi/api/por/accounts`, and its `violation_predicate`, written to
+a reviewer's specification, says that sending funds to a venue account not on that list is a
+violation. These two vault contracts are venue accounts and they are not on it, because an entry
+asserts control and we hold no key and no governance over either. So before any of the transactions
+above, we amended the registry to name both addresses under `disclosed_venue_deposits`, published it
+as version 5, and made the predicate require that the disclosure PRECEDE the transfer rather than
+excuse it afterwards. The signature on version 5 is dated ahead of every transaction hash listed here
+and both are public, so that ordering is checkable rather than asserted. The money came from the
+founder wallet and no PSM reserve was touched; the 100.1064% backing behind kUSD is unchanged and is
+still verifiable in the same seven read calls as before.
+
+The comparable below still stands, and the Morpho market has still never been touched by anyone.
+
+
 ---
 
 ## 9. What you would have to believe
