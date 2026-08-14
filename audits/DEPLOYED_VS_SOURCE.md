@@ -1,8 +1,8 @@
 # Deployed vs source: state disclosure
 
-For reviewers and audit firms. Last updated 2026-08-13. Mirrors the canonical web version at [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source), which carries the July 30, 2026 closure described in row 1. This file may run slightly ahead of the page after a mirror-side correction; that direction is the safe one, and it is the direction the CI check permits.
+For reviewers and audit firms. Last updated 2026-08-14. Mirrors the canonical web version at [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source), which carries the July 30, 2026 closure described in row 1. This file may run slightly ahead of the page after a mirror-side correction; that direction is the safe one, and it is the direction the CI check permits.
 
-**Every row below was re-read against chain at Base block 49932056 on 2026-08-13**, which is what moved the date. No row changed state. The re-read confirmed: the vault's `totalSupply()` is still 0 and `depositsEnabled()` still reverts while `whitelistEnabled()` is true and `maxDeposit()` returns 0 for every address; `BURNER_ROLE()` still reverts on kUSD while `MINTER_ROLE()` returns a valid hash; and the distributor still holds 0 ETH, 0 USDC and 0 kUSD with `ROOT_UPDATE_TIMELOCK()` still reverting. A full module-by-module table of the live reads, with the command behind every cell, is published at [kerne.fi/security/module-map](https://kerne.fi/security/module-map).
+**Every row below was re-read against chain at Base block 49932056 on 2026-08-13.** No row changed state. The re-read confirmed: the vault's `totalSupply()` is still 0 and `depositsEnabled()` still reverts while `whitelistEnabled()` is true and `maxDeposit()` returns 0 for every address; `BURNER_ROLE()` still reverts on kUSD while `MINTER_ROLE()` returns a valid hash; and the distributor still holds 0 ETH, 0 USDC and 0 kUSD with `ROOT_UPDATE_TIMELOCK()` still reverting. A full module-by-module table of the live reads, with the command behind every cell, is published at [kerne.fi/security/module-map](https://kerne.fi/security/module-map).
 
 On any young protocol the repository moves faster than the chain. This document is the canonical table of every place where Kerne's deployed bytecode behaves differently from the current source. It was first published before any external review began, and it is where the gap between the audited commit and the deployed contracts is stated, so a reviewer reading the code finds context here rather than surprises there.
 
@@ -118,6 +118,28 @@ Both reads above are from Base block 49932056, 2026-08-13. `convertToAssets` is 
 The same source change fixes a second defect nobody reported, `KRN-26-KEEPER-BURN-SINK`: `KerneKeeper._executeBuyback` verified output by measuring the KERNE delta on the treasury's `stakingContract`, but the patched treasury burns to `0x...dEaD` and sends staking nothing, so that delta was always zero and the check reverted on every **successful** buyback. `KerneKeeper` is not deployed, so this was never live; it is recorded because the buyback execution path had no test coverage until now.
 
 Neither is reachable on the deployed system. This address holds no inventory, `previewBuyback` returns zero so `executeBuyback` reverts `NoLiquidityForBuyback` before any swap, no buyback keeper is granted, and no KERNE venue deep enough to sandwich exists. The fix reaches chain only in a v4 redeploy, which stays behind the external audit. Until then the flywheel stays disarmed and the gate is enforced in code rather than prose: arming is a 2-of-3 Safe action, and `checkUpkeep` now suggests a zero floor precisely so its `performData` reverts if submitted verbatim.
+
+**Added 2026-08-14: configuration state, not bytecode divergence. A contract can match its source exactly and still not behave the way this document describes, because a runtime flag says otherwise.**
+
+The three rows above all describe deployed *code* differing from current *source*. There is a second way the live system can depart from the posture these documents set out, and none of those rows covers it: the bytecode matches, but a setter has left a check switched off. A reviewer diffing source against BaseScan will not find it, because there is nothing in the diff to find.
+
+The live instance is the PSM solvency gate. `solvencyCheckDisabled()` returns **true** on the live mint PSM [`0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803`](https://basescan.org/address/0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803#code), so `_checkSolvency` is skipped on both the mint and the redeem path: the source implements a check the deployed configuration does not run. The same flag is true on the retired v3 PSM `0x07eBb486...5993`, where it is inert, because that contract's kUSD `MINTER_ROLE` was revoked on 2026-07-10. The sibling depeg gate is **not** disabled: `depegCheckDisabled()` returns false, so that circuit breaker is enforced.
+
+**Where a reader checks configuration state.** Every flag of this kind is published as an on-chain read under `triggers.onChain` at [kerne.fi/api/risk-status](https://kerne.fi/api/risk-status), with a human-readable version at [kerne.fi/risk](https://kerne.fi/risk). That endpoint, not this file, is the canonical answer to "is a gate switched off right now", because it is regenerated from chain rather than written by hand. This file names the category and points at it; the endpoint carries today's values.
+
+```bash
+PSM=0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803
+RPC=https://mainnet.base.org
+
+cast call $PSM "solvencyCheckDisabled()(bool)" --rpc-url $RPC   # true,  the solvency gate is off
+cast call $PSM "depegCheckDisabled()(bool)"    --rpc-url $RPC   # false, the depeg gate is enforced
+```
+
+Both read at Base block 49,968,702 on 2026-08-14, identical across three independent RPC endpoints.
+
+**Read the effective state, not only the flag.** The endpoint also publishes `psm_solvency_gate_effective`, which answers something the flag alone does not: whether the gate would measure anything if it were switched back on. It reads `getSolvencyRatio()` on the vault at `0x8ccc56B5...292B`, and that vault's `totalSupply()` is 0, verified at the same block. So the reading is a zero-liabilities constant that clears the published `psm_solvency_gate_threshold` of 10100 rather than a measurement of anything. An enabled gate over an empty vault is decoration, and the endpoint states that rather than leaving a reader to assume the flag is the whole story.
+
+Reported by **ParthaSarathi** on 2026-08-01, who identified both that the gate was off on the live mint path and that this file and [`SCOPE.md`](SCOPE.md) carried no pointer to where configuration state is published. The flag itself was already exposed under `triggers.onChain`; the missing pointer from the auditor-facing mirror is what this section closes.
 
 ## Why we publish this
 
