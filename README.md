@@ -99,7 +99,7 @@ Nothing else is required. No RPC endpoint, no API key, no environment file. If y
 | Directory | What it holds |
 |---|---|
 | `test/regressions/` | One file per externally reported finding, headed with the reporter, the date, and the current status |
-| `test/disclosures/` | The three standing divergences in [`audits/DEPLOYED_VS_SOURCE.md`](audits/DEPLOYED_VS_SOURCE.md), as executable assertions |
+| `test/disclosures/` | Three of the four standing divergences in [`audits/DEPLOYED_VS_SOURCE.md`](audits/DEPLOYED_VS_SOURCE.md), as executable assertions. The skUSD row, added 2026-08-14, has no assertion here yet |
 | `test/invariants/` | Properties that are fixed and live, kept passing so a regression is visible |
 | `test/fork/` | Opt-in checks of this repository's published claims against live Base state |
 

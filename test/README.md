@@ -12,8 +12,11 @@ here needs a network, an API key or an environment file.
 Kerne lists a researcher publicly only after they have told us they want public
 credit. That rule is set out on
 [kerne.fi/security/acknowledgments](https://kerne.fi/security/acknowledgments) and
-it governs this directory too. **Eight researchers have confirmed public credit,
-and those are the eight named in test headers.**
+it governs this directory too. **Twelve researchers have confirmed public credit
+on that wall, and ten of them are named in a test header here.** The other two
+reported findings that have no test in this directory, which is a statement about
+coverage and not about them. Counts updated 2026-08-14, when ParthaSarathi and
+Abhinav Raj were added to the wall and to headers here.
 
 Some findings covered here were also reported by researchers who have not
 confirmed. Those files describe the finding and say plainly that a reporter exists
@@ -49,7 +52,7 @@ here. **A failure in a `test_KNOWN_` case is good news.**
 | Directory | What it holds |
 |---|---|
 | `regressions/` | One file per externally reported finding |
-| `disclosures/` | The three standing divergences, as executable assertions |
+| `disclosures/` | Three of the four standing divergences, as executable assertions. The skUSD row added 2026-08-14 is not covered here yet |
 | `invariants/` | Properties that are fixed and live, kept from regressing |
 | `fork/` | Opt-in checks of published claims against live Base state |
 | `helpers/` | Mocks and the shared test base |
@@ -59,8 +62,8 @@ here. **A failure in a `test_KNOWN_` case is good news.**
 | Finding | Reported by | Date | Status |
 |---|---|---|---|
 | Buyback slippage floor derived from a same-transaction pool quote | Dmitriy Filatov | 2026-07-14 | Fixed in source, not on chain. Unreachable: no inventory, no keeper, no venue |
-| Denial of service in the yield oracle's multi-party consensus path | @Olamdeen | 2026-07-04 | Fixed in source. Live oracle records nothing through this path |
-| Insurance-fund accounting gap on untracked injections | Kor_HaeTae | 2026-07-04 | Fixed in source, pending redeploy. Fund is empty |
+| Denial of service in the yield oracle's multi-party consensus path | Gaurang Maheta, then @Olamdeen 2026-07-04 | 2026-05-16 | Fixed in source. The live oracle has never recorded an observation |
+| Insurance-fund accounting gap on untracked injections | Kor_HaeTae | 2026-07-04 | Fixed in source. The vault half of the fix is live; the fund half is not, and the gap survives there. Fund is empty |
 | Forfeiture-on-exit bypass on the escrowed-KERNE vesting path | SpokoDev (Yaroslav Hrydkovets) | 2026-06-23 | Fixed in source. Escrow never funded |
 | Vesting-accounting review of the escrowed-KERNE path | Jay | 2026-06-24 | Fixed in source. Escrow never funded |
 | Stale-quote handling in the mint flow | Ekankaar | 2026-06-25 | Fixed and live |
@@ -71,6 +74,25 @@ Two further researchers reported findings covered by files in this directory and
 have not confirmed public credit, so they are described but not named: the
 independent rediscovery of the CR-bucket circuit-breaker gap (2026-07-28) and the
 mid-vest yield-sharing observation on skUSD (2026-07-28).
+
+**Correction, 2026-08-14, on the oracle row.** Until today that row credited
+@Olamdeen alone, from 2026-07-04. Gaurang Maheta reported the same defect on
+2026-05-16, seven weeks earlier, and was missing from it. The order was
+established from the disclosure mailbox on 2026-08-06 and the correction was
+promised in writing to three researchers who had been told their reports were
+duplicates. @Olamdeen's credit is unchanged: he found it independently and is
+second on the timeline, not displaced from it. The full history is in the header
+of
+[`regressions/YieldOracleConsensusBrick.t.sol`](regressions/YieldOracleConsensusBrick.t.sol),
+which also withdraws two claims that file used to make about the defect's reach.
+
+**Correction, 2026-08-14, on the insurance-fund row.** That file used to assert
+that the deployed vault had no `injectFromInsurance` entry point. It has one, and
+it works when called; what is missing is the call, on the fund side. The old test
+inferred absence from a failed low-level call, which is an inference a reverting
+function satisfies just as well. See the header of
+[`regressions/InsuranceFundUntrackedInjection.t.sol`](regressions/InsuranceFundUntrackedInjection.t.sol)
+for both halves and the commands that reproduce them.
 
 ## Two traps, if you are adding a test
 

@@ -68,7 +68,7 @@ Distinct from the code reviews above: in July 2026 the independent stablecoin an
 
 Internal posture:
 
-- 69 tests across 14 suites in this repository, reproducible from a clean checkout in two commands, plus a much larger private Foundry suite covering happy paths, revert paths, edge cases, and role-gated access.
+- 82 tests across 15 suites in this repository, reproducible from a clean checkout in two commands, plus a much larger private Foundry suite covering happy paths, revert paths, edge cases, and role-gated access.
 - Python (bot) and TypeScript (SDK) test suites, including a drift-guard suite that asserts every numeric threshold cited in `kerne.fi/docs/exit-triggers-and-emergency-runbook` matches the live constant in the bot's risk engine.
 
 The protocol's public bug bounty is live (see [`../SECURITY.md`](../SECURITY.md) and [kerne.fi/security](https://kerne.fi/security)). Internal adversarial audit reports are published at [kerne.fi/security/audits](https://kerne.fi/security/audits).

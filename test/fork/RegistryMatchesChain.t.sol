@@ -36,6 +36,11 @@ interface IPsmLike {
     function treasury() external view returns (address);
 }
 
+interface IPsmGateLike {
+    function solvencyCheckDisabled() external view returns (bool);
+    function depegCheckDisabled() external view returns (bool);
+}
+
 interface IRolesLike {
     function hasRole(bytes32, address) external view returns (bool);
 }
@@ -169,9 +174,77 @@ contract RegistryMatchesChainTest is KerneTest {
 
     /// @notice Same for the yield oracle: the consensus DoS is published because
     ///         the live oracle records nothing.
+    ///
+    ///         ⛔ CORRECTED 2026-08-14, and the same correction is made in the
+    ///         header of test/regressions/YieldOracleConsensusBrick.t.sol. This
+    ///         test used to assert `isRegistered(vault) == false` and describe the
+    ///         vault as "not even registered", as though registration were a gate.
+    ///         It is not. `isRegistered` is a public mapping that the oracle's
+    ///         `updateYield` never reads, so an unregistered vault can be proposed
+    ///         on and recorded against exactly like a registered one, and asserting
+    ///         it made the publication argument look broader than it was. The fact
+    ///         that actually carries the argument is that the observation array is
+    ///         EMPTY, which is what is asserted now: `observations(vault, 0)`
+    ///         reverts on an out-of-bounds read, so nothing has ever been recorded.
     function test_yieldOracleStillRecordsNothingWhichIsWhyItsDosIsPublishable() public onlyForked {
         assertEq(IOracleLike(YIELD_ORACLE).getTWAY(LIVE_VAULT), 0, "no yield reported");
-        assertFalse(IOracleLike(YIELD_ORACLE).isRegistered(LIVE_VAULT), "the vault is not even registered");
+
+        (bool ok,) = YIELD_ORACLE.staticcall(
+            abi.encodeWithSignature("observations(address,uint256)", LIVE_VAULT, uint256(0))
+        );
+        assertFalse(ok, "observations(vault, 0) reverts, so the array is empty and nothing was ever recorded");
+    }
+
+    /// @notice Configuration state, which is the axis neither a source diff nor a
+    ///         bytecode comparison can see: the contract matches its source and a
+    ///         setter has switched a check off anyway.
+    ///
+    ///         Reported by ParthaSarathi on 2026-08-01, who found both that the
+    ///         solvency gate was off on the live mint path and that the
+    ///         auditor-facing documents carried no pointer to where configuration
+    ///         state is published. The documents were corrected on 2026-08-14. This
+    ///         test is the other half of the promise made to him, that the finding
+    ///         would be credited on a regression header: there is no code defect
+    ///         here to regress against, so the assertion is against live
+    ///         configuration instead, read from the registry rather than hardcoded.
+    ///
+    ///         ⛔ A failure here means the flag moved and the disclosure is stale.
+    ///         Fix `contracts.KUSDPSM.configurationState` in deployments/8453.json
+    ///         and the configuration-state section of audits/DEPLOYED_VS_SOURCE.md
+    ///         together, exactly as with the deposit state above. It fails in both
+    ///         directions on purpose: quietly re-enabling the gate and leaving the
+    ///         disclosure saying it is off is caught here too.
+    function test_disclosedPsmGateConfigurationMatchesChain() public onlyForked {
+        assertEq(
+            vm.parseJsonAddress(registry, ".contracts.KUSDPSM.address"),
+            LIVE_MINT_PSM,
+            "registry names the PSM this test probes"
+        );
+
+        bool expectedSolvencyOff =
+            vm.parseJsonBool(registry, ".contracts.KUSDPSM.configurationState.solvencyCheckDisabled");
+        bool expectedDepegOff = vm.parseJsonBool(registry, ".contracts.KUSDPSM.configurationState.depegCheckDisabled");
+
+        assertEq(
+            IPsmGateLike(LIVE_MINT_PSM).solvencyCheckDisabled(),
+            expectedSolvencyOff,
+            "solvencyCheckDisabled matches the published registry"
+        );
+        assertEq(
+            IPsmGateLike(LIVE_MINT_PSM).depegCheckDisabled(),
+            expectedDepegOff,
+            "depegCheckDisabled matches the published registry"
+        );
+
+        // The part a flag read alone does not tell you, and the better fact handed
+        // back to the reporter: with the vault empty the gate has nothing to
+        // measure, so switching it back on would protect nobody. If this ever stops
+        // being 0 the effective-state claim in DEPLOYED_VS_SOURCE.md needs rewriting.
+        assertEq(
+            IKerneVaultLike(LIVE_VAULT).totalSupply(),
+            0,
+            "the vault the gate reads has no liabilities, so the gate is a sentinel either way"
+        );
     }
 
     /// @notice And the insurance fund: the untracked-injection gap is published

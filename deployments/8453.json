@@ -34,6 +34,15 @@
       "address": "0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803",
       "type": "Peg Stability Module (USDC -> kUSD mint; holds kUSD MINTER_ROLE)",
       "note": "Live mint PSM redeployed 2026-07-10 from the frozen external-audit commit so the deployed bytecode matches the source under audit; configuration mirrors the prior instance. Sourcify exact match (creation + runtime); BaseScan native verification pending. This is the address users mint through today and the only PSM holding kUSD MINTER_ROLE; the other MINTER_ROLE holder is KerneVault v2 0x8ccc56B5...292B. The prior mint PSM 0x07eBb486...5993 (2026-06-16 ceremony) had MINTER_ROLE revoked and is retained temporarily as a kUSD->USDC redeem reserve while its USDC reserve migrates (see retired.KUSDPSM_2026_06_16_redeemReserve). The earlier PSM 0xFf3025ec...5Fbc had MINTER_ROLE revoked in the 2026-06-16 ceremony and is retained as the kUSD->USDC redeem reserve (see retired.KUSDPSM_v1_redeemReserve). The Proof of Reserves sums all three PSM reserves through the migration window.",
+      "configurationState": {
+        "_comment": "Configuration state is a separate axis from bytecode: a contract can match its source exactly and still have a check switched off by a setter, which no source-versus-explorer diff can show. Authoritative for the configuration-state section of audits/DEPLOYED_VS_SOURCE.md and for audits/SCOPE.md. test/fork/RegistryMatchesChain.t.sol asserts both flags against a fork of live Base. Reported by ParthaSarathi, 2026-08-01. Today's values are also published as an on-chain read under triggers.onChain at kerne.fi/api/risk-status, which is regenerated from chain rather than written by hand and is the fresher of the two.",
+        "readAtBlock": 49986375,
+        "readOn": "2026-08-14",
+        "solvencyCheckDisabled": true,
+        "depegCheckDisabled": false,
+        "effectiveNote": "The solvency gate reads getSolvencyRatio() on KerneVault v2 0x8ccc56B5...292B, whose totalSupply() is 0, so the reading is a zero-liabilities sentinel rather than a measurement. Re-enabling the gate over an empty vault protects nobody. Read the effective state, not only the flag.",
+        "reportedBy": "ParthaSarathi"
+      },
       "explorer": "https://basescan.org/address/0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803"
     },
     "KerneVault": {
