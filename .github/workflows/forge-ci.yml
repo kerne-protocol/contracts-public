@@ -81,3 +81,27 @@ jobs:
         # mandatory by accident, this step catches it here rather than on a
         # stranger's machine.
         run: forge test --match-path 'test/fork/*'
+
+      # Coverage is REPORTED and never ENFORCED. `continue-on-error` is the whole
+      # point: this step publishes a number so the count of tests is not the only
+      # thing anyone can check, and a coverage gate on a repository whose job is
+      # mirroring verified bundles would go red for reasons that say nothing
+      # about test quality. It runs last so it cannot delay a real signal.
+      #
+      # The filter is load-bearing, not cosmetic. Unfiltered, the total reads
+      # about 15%, because every bundle under contracts/ vendors the exact
+      # OpenZeppelin tree its address was verified against and those thousands
+      # of third-party lines were never Kerne's to test. Excluding lib/ and
+      # test/ leaves Kerne-authored source, which reported 34.60% of lines on
+      # 2026-08-14.
+      #
+      # Read the per-file rows, not the total. The bundles duplicate sources
+      # between them: KerneVault.sol appears under its own bundle AND again
+      # inside the KerneYieldOracle bundle, where nothing exercises it, so the
+      # aggregate counts that contract twice and reports the second copy at 0%.
+      # The total is therefore a floor and not a measurement of the suite. Any
+      # public figure taken from this step should be a per-contract row, which
+      # is why no single percentage is quoted on the org profile.
+      - name: Report coverage over Kerne-authored source
+        continue-on-error: true
+        run: forge coverage --report summary --no-match-coverage '(^lib/|/lib/|^test/)'
