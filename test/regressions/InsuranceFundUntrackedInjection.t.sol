@@ -168,9 +168,7 @@ contract InsuranceFundUntrackedInjectionTest is Test {
 
         assertFalse(ok, "an unauthorised caller is rejected");
         assertEq(ret.length, 4, "and it is rejected with a custom error, not with empty returndata");
-        assertEq(
-            bytes4(ret), KerneVault.NotInsuranceFund.selector, "the rejection is NotInsuranceFund(), 0x8ce905cb"
-        );
+        assertEq(bytes4(ret), KerneVault.NotInsuranceFund.selector, "the rejection is NotInsuranceFund(), 0x8ce905cb");
 
         // The control that the old assertion was missing. `injectFromInsurance`
         // exists; this signature does not. Same call shape, different returndata.

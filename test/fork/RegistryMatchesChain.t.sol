@@ -189,9 +189,8 @@ contract RegistryMatchesChainTest is KerneTest {
     function test_yieldOracleStillRecordsNothingWhichIsWhyItsDosIsPublishable() public onlyForked {
         assertEq(IOracleLike(YIELD_ORACLE).getTWAY(LIVE_VAULT), 0, "no yield reported");
 
-        (bool ok,) = YIELD_ORACLE.staticcall(
-            abi.encodeWithSignature("observations(address,uint256)", LIVE_VAULT, uint256(0))
-        );
+        (bool ok,) =
+            YIELD_ORACLE.staticcall(abi.encodeWithSignature("observations(address,uint256)", LIVE_VAULT, uint256(0)));
         assertFalse(ok, "observations(vault, 0) reverts, so the array is empty and nothing was ever recorded");
     }
 
