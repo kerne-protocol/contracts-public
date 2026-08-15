@@ -2,19 +2,20 @@
 pragma solidity 0.8.24;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The three standing divergences, as executable assertions
+// The four standing divergences, as executable assertions
 //
 // `audits/DEPLOYED_VS_SOURCE.md` is the document where Kerne states, in prose,
 // every place its deployed bytecode behaves differently from its current source.
-// Prose is not checkable. This file makes each of the three rows a test against
+// Prose is not checkable. This file makes each of the four rows a test against
 // the mirrored deployed source, so the disclosure and the code cannot drift apart
 // quietly.
 //
-// No researcher is credited in this file. Two of these three rows were also
-// reported externally on 2026-07-28, but that reporter has not confirmed public
-// credit, and Kerne's rule is that a researcher is named only after they ask to
-// be. The findings were already published in the disclosure document before those
-// reports arrived, which is why they are testable here at all.
+// No researcher is credited in this file. Two of these rows were also reported
+// externally on 2026-07-28, but that reporter has not confirmed public credit,
+// and Kerne's rule is that a researcher is named only after they ask to be. The
+// findings were already published in the disclosure document before those
+// reports arrived, which is why they are testable here at all. The skUSD row
+// added on 2026-08-14 was found in Kerne's own sweep and has no reporter.
 //
 // These tests assert that the divergences ARE present. They are supposed to pass
 // today and to FAIL the day the remediated contracts are mirrored here. A failure
@@ -26,9 +27,136 @@ import { kUSD } from "../../contracts/kUSD/src/kUSD.sol";
 import { KerneYieldDistributor } from "../../contracts/KerneYieldDistributor/src/KerneYieldDistributor.sol";
 import { KerneVault } from "../../contracts/KerneVault/src/KerneVault.sol";
 import { IERC20 } from "../../contracts/KerneVault/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { skUSD } from "../../contracts/skUSD/src/skUSD.sol";
+import { ERC20 as SkusdErc20 } from "../../contracts/skUSD/lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import { MockERC20 } from "../helpers/Mocks.sol";
 
-// ── Row 1: KerneVault v2 ─────────────────────────────────────────────────────
+// ── Row 1: skUSD ─────────────────────────────────────────────────────────────
+// "In the deployed _withdraw, the KRN-26-SKUSD-ORPHAN reset that collapses an
+//  in-flight yield vest fires only when totalSupply() reaches zero, and one wei
+//  of shares holds that trigger open indefinitely. So an address that keeps a
+//  dust position outstanding while the staked capital exits during a vest ends
+//  up owning the entire still-unvested distribution."
+//
+// Tag KRN-26-SKUSD-SQUAT, self-found 2026-07-30, fixed in source the same day,
+// open on chain because skUSD is not a proxy. The 500.000000000000000001 kUSD
+// figure published in the disclosure is the number this file measures.
+contract SkusdOrphanResetSquatDisclosureTest is KerneTest {
+    skUSD internal vault;
+    MockERC20 internal asset;
+
+    address internal admin = makeAddr("safe");
+    address internal strategist = makeAddr("strategist");
+    address internal staker = makeAddr("staker");
+    address internal squatter = makeAddr("squatter");
+
+    uint256 internal constant STAKE = 1_000e18;
+    uint256 internal constant YIELD = 1_000e18;
+
+    function setUp() public {
+        _startClock(1_700_000_000);
+        asset = new MockERC20("Kerne Synthetic Dollar", "kUSD", 18);
+        vault = new skUSD(SkusdErc20(address(asset)), admin);
+        bytes32 strategistRole = vault.STRATEGIST_ROLE();
+        vm.prank(admin);
+        vault.grantRole(strategistRole, strategist);
+
+        asset.mint(staker, 10_000e18);
+        asset.mint(squatter, 10_000e18);
+        asset.mint(strategist, 10_000e18);
+    }
+
+    function _deposit(address who, uint256 amount) internal returns (uint256) {
+        vm.startPrank(who);
+        asset.approve(address(vault), amount);
+        uint256 shares = vault.deposit(amount, who);
+        vm.stopPrank();
+        return shares;
+    }
+
+    function _distribute(uint256 amount) internal {
+        vm.startPrank(strategist);
+        asset.approve(address(vault), amount);
+        vault.distributeYield(amount);
+        vm.stopPrank();
+    }
+
+    /// @notice THE DISCLOSED BEHAVIOUR. One wei of shares keeps totalSupply()
+    ///         non-zero, so the orphan reset never fires, and the whole unvested
+    ///         distribution vests to a position that put up no capital.
+    function test_KNOWN_oneWeiSquatterInheritsTheUnvestedDistribution() public {
+        _deposit(staker, STAKE);
+        assertGt(_deposit(squatter, 1), 0, "one wei mints a non-zero share balance");
+
+        _distribute(YIELD);
+
+        // The honest staker exits while the distribution is still fully locked.
+        // Being paid only the vested portion is correct and is not what is tested.
+        uint256 stakerShares = vault.balanceOf(staker);
+        vm.prank(staker);
+        uint256 paid = vault.redeem(stakerShares, staker, staker);
+        assertApproxEqAbs(paid, STAKE, 1e12, "exiting staker is paid principal");
+        assertGt(vault.totalSupply(), 0, "the dust position holds the reset trigger open");
+
+        _advance(vault.yieldVestingPeriod() + 1);
+        assertEq(vault.lockedYield(), 0, "vest complete");
+
+        uint256 squatterShares = vault.balanceOf(squatter);
+        uint256 before = asset.balanceOf(squatter);
+        vm.prank(squatter);
+        vault.redeem(squatterShares, squatter, squatter);
+        uint256 taken = asset.balanceOf(squatter) - before;
+
+        emit log_named_decimal_uint("one-wei position redeemed (kUSD)", taken, 18);
+        assertEq(taken, 500.000000000000000001e18, "the figure published in the disclosure");
+    }
+
+    /// @notice The control, and the reason the trigger is the defect rather than
+    ///         the design: with no dust position the last exit collapses the vest
+    ///         and the yield becomes a sweepable donation instead of a windfall.
+    function test_theOrphanResetStillWorksWhenNobodySquats() public {
+        _deposit(staker, STAKE);
+        _distribute(YIELD);
+
+        uint256 stakerShares = vault.balanceOf(staker);
+        vm.prank(staker);
+        vault.redeem(stakerShares, staker, staker);
+
+        assertEq(vault.totalSupply(), 0, "all shares burned");
+        assertEq(vault.totalAssets(), 0, "ledger zeroed by the orphan reset");
+        assertEq(vault.lockedYield(), 0, "vest collapsed");
+
+        vm.prank(strategist);
+        vault.sweepDonations(strategist);
+        assertApproxEqAbs(asset.balanceOf(address(vault)), 0, 1e6, "yield recovered, not stranded");
+    }
+
+    /// @notice The bound the operating rule rests on, stated in the disclosure as
+    ///         "the window is opened by Kerne, not by an attacker": there is
+    ///         nothing to inherit unless a distribution is in flight, and only
+    ///         STRATEGIST_ROLE can start one.
+    function test_theWindowExistsOnlyWhileAVestIsInFlight() public {
+        _deposit(staker, STAKE);
+        assertGt(_deposit(squatter, 1), 0, "squatter is in position");
+        assertEq(vault.lockedYield(), 0, "no vest, nothing to inherit");
+
+        uint256 stakerShares = vault.balanceOf(staker);
+        vm.prank(staker);
+        vault.redeem(stakerShares, staker, staker);
+
+        uint256 squatterShares = vault.balanceOf(squatter);
+        uint256 before = asset.balanceOf(squatter);
+        vm.prank(squatter);
+        vault.redeem(squatterShares, squatter, squatter);
+        assertLe(asset.balanceOf(squatter) - before, 1, "the dust position gets its wei back and no more");
+
+        vm.prank(squatter);
+        vm.expectRevert();
+        vault.distributeYield(YIELD);
+    }
+}
+
+// ── Row 2: KerneVault v2 ─────────────────────────────────────────────────────
 // "The on-chain public-deposits gate is also absent, so calling depositsEnabled()
 //  on the live contract reverts. [...] because the on-chain deposits gate was never
 //  deployed, maxDeposit() returns the maximum uint256 for any address, so a
@@ -102,7 +230,7 @@ contract VaultDepositGateDisclosureTest is KerneTest {
     }
 }
 
-// ── Row 2: kUSD ──────────────────────────────────────────────────────────────
+// ── Row 3: kUSD ──────────────────────────────────────────────────────────────
 // "Standard OpenZeppelin ERC20Burnable: burnFrom is callable by any address
 //  holding an allowance from the token owner. No role gate on burning. [...]
 //  Current source: burning is gated behind BURNER_ROLE."
@@ -151,7 +279,7 @@ contract KusdBurnFromDisclosureTest is KerneTest {
     }
 }
 
-// ── Row 3: KerneYieldDistributor ─────────────────────────────────────────────
+// ── Row 4: KerneYieldDistributor ─────────────────────────────────────────────
 // "ROOT_UPDATER_ROLE can set a new Merkle distribution root with immediate
 //  effect. [...] Current source: root updates go through proposeMerkleRoot and
 //  executeMerkleRoot with a 24-hour ROOT_UPDATE_TIMELOCK. [...] Standing

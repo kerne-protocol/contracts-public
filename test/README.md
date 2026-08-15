@@ -40,6 +40,22 @@ the on-chain reading that supports it. Where a finding is live and unfixed, ther
 is no test here. There are findings in that category. They are held, their
 reporters are credited privately, and they arrive here when they are closed.
 
+**One case sits outside that rule on purpose, and naming it is cheaper than
+letting a reader find the inconsistency.** `KRN-26-SKUSD-SQUAT`, the first row of
+[`../audits/DEPLOYED_VS_SOURCE.md`](../audits/DEPLOYED_VS_SOURCE.md), is fixed in
+source and open on chain, and `disclosures/DeployedVsSource.t.sol` reproduces it
+anyway. Three reasons, stated so they can be argued with. The disclosure row
+already describes the mechanism in full, because a divergence row that withholds
+the mechanism is not a disclosure; the test adds a runnable check of a published
+number, not a new fact. The exposure is bounded to the unvested portion of a
+yield distribution and cannot reach staked principal, because the adjustment
+leaves `totalAssets()` unchanged, and the largest distribution ever made on the
+live contract is 0.1 kUSD. And the window only exists while `lockedYield()` is
+above zero, which only `STRATEGIST_ROLE` can open, so the condition the exploit
+needs is one Kerne controls rather than one an attacker can create. Read that as
+the reasoning, not as a precedent: the default stays no test while a finding is
+live.
+
 This is why the suite is not a list of things Kerne got right. Several tests
 assert that a defect **is** present in the deployed bytecode, because that is what
 [`../audits/DEPLOYED_VS_SOURCE.md`](../audits/DEPLOYED_VS_SOURCE.md) already
@@ -52,7 +68,7 @@ here. **A failure in a `test_KNOWN_` case is good news.**
 | Directory | What it holds |
 |---|---|
 | `regressions/` | One file per externally reported finding |
-| `disclosures/` | Three of the four standing divergences, as executable assertions. The skUSD row added 2026-08-14 is not covered here yet |
+| `disclosures/` | The four standing divergences, as executable assertions |
 | `invariants/` | Properties that are fixed and live, kept from regressing |
 | `fork/` | Opt-in checks of published claims against live Base state |
 | `helpers/` | Mocks and the shared test base |

@@ -43,8 +43,17 @@ RPC=https://mainnet.base.org
 
 cast call $SKUSD "lockedYield()(uint256)"         --rpc-url $RPC   # 0, no distribution in flight
 cast call $SKUSD "totalAssets()(uint256)"         --rpc-url $RPC   # 1011582169134048985696
+cast call $SKUSD "lastYieldAmount()(uint256)"     --rpc-url $RPC   # 100000000000000000, the 0.1 kUSD smoke test
 cast call $SKUSD "yieldVestingPeriod()(uint256)"  --rpc-url $RPC   # 86400
 ```
+
+**The 500.000000000000000001 figure is executable in this repository, not just quoted in it.** [`../test/disclosures/DeployedVsSource.t.sol`](../test/disclosures/DeployedVsSource.t.sol) builds the mirrored deployed source at [`../contracts/skUSD/src/skUSD.sol`](../contracts/skUSD/src/skUSD.sol) and reproduces the number, alongside two cases that pin the bounds: the orphan reset still works when nobody squats, and there is nothing to inherit unless a vest is in flight. Run `forge test --match-contract SkusdOrphanResetSquatDisclosureTest -vv`. The file Sourcify serves for the live address is byte-identical to the mirrored copy the test compiles:
+
+```
+sha256  7a1c9a2d2a62989d1abfe23d58157894bef5217ca86ca89c480c9cf89eff50c4
+```
+
+The distribution history above is the complete one, read from every `YieldDistributed` log between the deploy block 48175381 and block 49986207, not a sample. Nothing in this repository carries the fixed source, because the monorepo it lives in is private; what an outside reader can check without asking us is the deployed side, and it contains no cap on the post-exit vest.
 
 ### 2. KerneVault v2
 

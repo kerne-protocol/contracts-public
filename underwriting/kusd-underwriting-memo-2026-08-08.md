@@ -218,6 +218,18 @@ code rather than from our description of them.
 
 Three standing divergences. Each is live today.
 
+> **Addendum, 2026-08-14.** This section is left as it was read on 2026-08-08 rather than rewritten,
+> because the memo's rule is that a figure which moves says so instead of being quietly replaced. The
+> count is now **four**. `KRN-26-SKUSD-SQUAT` was added to
+> `contracts-public/audits/DEPLOYED_VS_SOURCE.md` on 2026-08-14: in the deployed `skUSD._withdraw`,
+> the orphan reset that collapses an in-flight yield vest is gated on `totalSupply() == 0`, and one
+> wei of shares holds that gate open, so a dust position can inherit an unvested distribution once
+> the staked capital exits. Self-found 2026-07-30, fixed in source the same day, open on chain
+> because skUSD is not a proxy. It cannot reach staked principal, because the adjustment leaves
+> `totalAssets()` unchanged; the bound is the unvested portion of a distribution, and the largest
+> ever made on this contract is 0.1 kUSD. Read the row rather than this paragraph, and note that
+> skUSD holds most of the kUSD supply, which is why the row is first.
+
 **KerneVault v2 `0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B`.** The deployed bytecode matches commit
 `ecc95cf7`, roughly three weeks earlier than the audited commit. All ten findings are live on it, plus
 three defects we found ourselves after deploy. **Exposure is bounded to zero by fact, not by promise:**
