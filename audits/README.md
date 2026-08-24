@@ -4,23 +4,31 @@ This directory publishes external audit reports as they land. Each report is com
 
 ## Current status: first external audit completed, final report published
 
-**[Hexens, Security Review Report for Kerne Protocol, final report dated 31 July 2026.](hexens-kerne-protocol-final-2026-07-31.pdf)**
+**[Hexens, Security Review Report for Kerne Protocol, final report dated 31 July 2026.](hexens-kerne-protocol-final-2026-07-31-updated-2026-08-20.pdf)**
 
 | | |
 |---|---|
 | Reviewer | [Hexens](https://hexens.io), lead security researcher Trung Dinh |
-| Report | [`hexens-kerne-protocol-final-2026-07-31.pdf`](hexens-kerne-protocol-final-2026-07-31.pdf) (29 pages, 8,269,537 bytes) |
+| Report | [`hexens-kerne-protocol-final-2026-07-31-updated-2026-08-20.pdf`](hexens-kerne-protocol-final-2026-07-31-updated-2026-08-20.pdf) (29 pages, 10,184,151 bytes), the copy Hexens reissued on 20 August 2026 |
 | Published by the auditor | [hexens.io/audit-reports/kerne-protocol-july-2026](https://hexens.io/audit-reports/kerne-protocol-july-2026), the same review hosted by Hexens rather than by Kerne |
-| SHA-256 | `655e7126030c750e9d58f2ab30b58215ce604942f06997d5c01532d6f687a4ca` |
+| SHA-256 | `1f858d9105c74e845f59db208ffbb0fd1e21cbbf07336347c5b09b5078fb7298` |
+| Superseded copy | [`hexens-kerne-protocol-final-2026-07-31.pdf`](hexens-kerne-protocol-final-2026-07-31.pdf) (29 pages, 8,269,537 bytes), SHA-256 `655e7126030c750e9d58f2ab30b58215ce604942f06997d5c01532d6f687a4ca`. Published 31 July 2026 and kept in place, so the hash published that day stays checkable |
 | Commit reviewed | `0912c870a89f1fa707f69c60fc05c05ea85e2fa8`, frozen before fieldwork began |
 | Scope | five contracts: `kUSD.sol`, `skUSD.sol`, `KUSDPSM.sol`, `KerneVault.sol`, `esKERNE.sol`, published verbatim in [`scope/`](scope/) |
 | Fieldwork | 13 July 2026 to 20 July 2026 (initial report), revision received 21 July 2026, final report 31 July 2026 |
 | Remediation commit | `98f29e55e587ea81d18e61a5ec2061b8a23287f4`, also published in [`scope/`](scope/) |
 
-The report's own Scope section links those five files on `github.com/enerzy17/kerne-main`, which is
-private, so every one of those links returns 404. [`scope/`](scope/) republishes the exact source of
-both commits, with per-file SHA-256, so the reviewed code can be read and the remediation diffed
-without access to the private repository.
+Both files are the same 29 page report and the two differ on one page. The copy published on
+31 July 2026 linked the five reviewed files on `github.com/enerzy17/kerne-main`, which is private, so
+every one of those links returned 404. Hexens reissued the report on 20 August 2026 with its Scope
+section repointed at [`scope/`](scope/) in this repository, pinned to commit `58a838dd`, and those
+links resolve. Nothing else moved: the findings, their severities, their dispositions and the
+changelog dates are identical in both files, and the remaining difference is a single space
+character on each of four pages.
+
+[`scope/`](scope/) republishes the exact source of both the reviewed and the remediation commit, with
+per-file SHA-256, so the reviewed code can be read and the remediation diffed without access to the
+private repository.
 
 ### Findings, as counted by the report itself
 
