@@ -1,6 +1,6 @@
 # Deployed vs source: state disclosure
 
-For reviewers and audit firms. Last updated 2026-08-14. Mirrors the canonical web version at [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source), which carries the July 30, 2026 closure described in the KerneVault row. This file may run slightly ahead of the page after a mirror-side correction; that direction is the safe one, and it is the direction the CI check permits.
+For reviewers and audit firms. Last updated 2026-08-24. Mirrors the canonical web version at [kerne.fi/security/deployed-vs-source](https://kerne.fi/security/deployed-vs-source), which carries the July 30, 2026 closure described in the KerneVault row. This file may run slightly ahead of the page after a mirror-side correction; that direction is the safe one, and it is the direction the CI check permits.
 
 **The skUSD row was added on 2026-08-14 and read at Base block 49,987,258. The other three rows were re-read against chain at Base block 49932056 on 2026-08-13.** No row changed state. The re-read confirmed: the vault's `totalSupply()` is still 0 and `depositsEnabled()` still reverts while `whitelistEnabled()` is true and `maxDeposit()` returns 0 for every address; `BURNER_ROLE()` still reverts on kUSD while `MINTER_ROLE()` returns a valid hash; and the distributor still holds 0 ETH, 0 USDC and 0 kUSD with `ROOT_UPDATE_TIMELOCK()` still reverting. A full module-by-module table of the live reads, with the command behind every cell, is published at [kerne.fi/security/module-map](https://kerne.fi/security/module-map).
 
@@ -122,6 +122,45 @@ BASE_RPC_URL=https://mainnet.base.org forge test --match-path 'test/fork/*'
 **Corrected 2026-08-14.** This entry used to end by saying deployed matched source on this contract, so the row had left the table above. That was accurate from 2026-07-03 until 2026-07-30, when the adversarial sweep of the live money surfaces found a second defect in the same withdrawal path, `KRN-26-SKUSD-SQUAT`. It was fixed in source the same day and it is not on chain, so **skUSD is the first row of the divergence table above rather than a closed entry here.** The two are separate findings against the same contract: the streaming fix that closed in July is live and intact, and the one-wei squat on the orphan reset is not.
 
 ## Not a divergence, but read it before you file one
+
+**Added 2026-08-24: almost all of the USDC that backs kUSD sits in the PSM this repository calls retired, and that is where a large redemption has to route. Published because a researcher found the contract and we would rather state the shape of it than have the next reader infer it.**
+
+Three contracts hold PSM reserves. Only `0xaBDE1138...9803` can still mint. Read at Base block **50,404,421** on 2026-08-24:
+
+| Contract | Address | USDC | Share |
+|---|---|---|---|
+| Live mint PSM | `0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803` | 30.000000 | 2.70% |
+| Retired mint PSM (`MINTER_ROLE` revoked 2026-07-10) | `0x07eBb486e11BD217e6085eb5ab663e4517595993` | 995.003000 | 89.57% |
+| Redeem-reserve PSM (`MINTER_ROLE` revoked 2026-06-16) | `0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc` | 85.885006 | 7.73% |
+
+A redemption is one transaction against one contract, and each contract pays only out of its own reserve, so these are per-contract ceilings and never a sum. Measured on a mainnet fork by binary search, at the top tier of the published redeem fee ladder: the live mint PSM serves at most **30.030031 kUSD** in one redemption, the redeem-reserve PSM **85.970977**, and the retired mint PSM **995.998999**. Above roughly **86 kUSD** the retired contract is the only one that can serve a redeemer at all; above roughly **996 kUSD** every one of them reverts with `InsufficientStableReserves()`.
+
+Three things a reader should not have to infer:
+
+1. **It is not paused and that is deliberate.** Pausing `0x07eBb486` would remove 89.57% of redemption capacity and leave holders the two shallow reserves. That is worse for a holder than the state described here, not better.
+2. **The reserve cannot be swept out.** The only function on that bytecode that sends USDC anywhere other than to a redeemer is `skimSurplus`, bounded by `skimmableSurplus`, which is itself bounded by the accrued fee ledger rather than by the balance. It returns **1.001000** there against 995.003000 held. Check the bound rather than the assurance.
+3. **`solvencyCheckDisabled()` is true on it, and the redeem path does not burn.** Both are already documented, the first in the KUSDPSM row above and the second in [`SCOPE.md`](SCOPE.md) under the 2026-08-14 byte-for-byte note, where the whole of the difference between this bundle and the live PSM is the 2026-07-06 redeem-burn fix `KRN-26-PSM-REDEEM-NO-BURN`. Neither is new and neither is the point of this section. The concentration is.
+
+```bash
+USDC=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+RPC=https://mainnet.base.org
+
+for P in 0xaBDE1138aa1Ce88d1dF06422C0c3b05D70569803 \
+         0x07eBb486e11BD217e6085eb5ab663e4517595993 \
+         0xFf3025ec18e301855aB0f36Ec6ECa115a29A5Fbc; do
+  cast call $USDC "balanceOf(address)(uint256)" $P --rpc-url $RPC
+done
+
+# The bound on the only non-redeem exit for that USDC.
+cast call 0x07eBb486e11BD217e6085eb5ab663e4517595993 \
+  "skimmableSurplus(address)(uint256)" $USDC --rpc-url $RPC   # 1001000, not the balance
+
+# The netting that keeps the published ratio honest across a redemption.
+# outstanding = totalSupply - kUSD held by the PSM contracts.
+cast call 0x5C2EfdF0D8D286959b42308966bc2B97f5680AA3 "totalSupply()(uint256)" --rpc-url $RPC
+```
+
+Prompted by an external report on 2026-08-21 that read the retired PSM off chain and correctly identified that it is unpaused, holds real USDC, and does not burn on redeem. The redeem-burn half of that report is an independent rediscovery of `KRN-26-PSM-REDEEM-NO-BURN`, first reported 2026-07-06. The reporter is not named here because he has been asked for consent to be credited and has not yet answered; when he does, the credit goes on [kerne.fi/security/acknowledgments](https://kerne.fi/security/acknowledgments) and this line gets his name. The concentration above had been published nowhere before this entry, and is here because he went looking. The live figures are served at [kerne.fi/api/por](https://kerne.fi/api/por) under `redemptionDepth`, and the same disclosure is in section 1 of [kerne.fi/security](https://kerne.fi/security).
 
 **Added 2026-08-13: skUSD reports 24 decimals against an 18 decimal asset. This is deliberate and it is the single most likely thing on this system to be integrated wrong.**
 
