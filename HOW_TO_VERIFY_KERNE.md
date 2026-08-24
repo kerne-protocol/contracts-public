@@ -50,7 +50,10 @@ curl -s https://kerne.fi/api/por | jq '.reserves.vault'
 # Each bucket, read directly from the contract.
 # NOTE: this is the legacy v1 vault the Proof of Reserves currently attests; it is
 # the address /api/por reads, so these calls must match that endpoint. The live
-# deposit/mint vault is KerneVault v2 (0x8ccc56B5...292B), holding kUSD MINTER_ROLE.
+# deposit/mint vault is KerneVault v2 (0x8ccc56B5...292B). It does NOT hold kUSD
+# MINTER_ROLE: that grant was revoked on 2026-08-03 and the live PSM is the sole
+# holder. This comment said the vault held it until 2026-08-24, which section 4
+# had already contradicted in the same document. Section 4 was right.
 VAULT=0x8005bc7A86AD904C20fd62788ABED7546c1cF2AC
 RPC=https://mainnet.base.org
 
@@ -158,6 +161,16 @@ BASE_RPC_URL=https://mainnet.base.org forge test --match-path 'test/fork/PsmCapa
 ```
 
 Nine tests. Like every file under `test/fork`, it is opt-in: without `BASE_RPC_URL` it prints `SKIPPED` and passes, so a clean clone with no network never goes red. The plain-language version, with the same commands and the disclosures that belong beside the number, is at <https://kerne.fi/dossier/capacity>.
+
+**And back out again: the round trip.** Capacity answers half the question. `test/fork/MillionDollarRoundTrip.t.sol` answers the other half by running the whole cycle at block 50,400,000: one million USDC in, staked into skUSD, unstaked, and redeemed back to USDC. Seven calls, one address derived from a string, no allowlist and no application.
+
+```bash
+BASE_RPC_URL=https://mainnet.base.org forge test --match-path 'test/fork/MillionDollarRoundTrip.t.sol' -vv
+```
+
+Eight tests. What comes back is **998,800.35 USDC**, so the round trip costs **1,199.65 USDC, or 11.9965 basis points**. The reason it is roughly twelve and not ten is a tier boundary: the ladder charges 5 bps at or above 1,000,000 USDC and 7 bps at or above 250,000, and what returns from the mint is 999,500 kUSD, which is 500 short of the top tier. Read your own size with `getFee(USDC, amount)` rather than doubling the entry fee.
+
+**Read this part before quoting the rest of it.** The mint leg is genuinely unconstrained, because the cap is ten million and a deposit is not gated on the reserve. The redeem leg is funded solely by the module's own USDC reserve, and at that block the largest single redemption available anywhere in the system is **995.003 USDC**, from the retired module. The round trip closes only because the mint immediately before it is what funds it. The test asserts that in both directions: presented with 999,500 kUSD and no preceding mint, the live module reverts `InsufficientStableReserves()` (`0x49d5a855`), and the deepest module pays out its entire 995.003 USDC for a redemption of 995.998999999999999998 kUSD while one wei more reverts. The three reserves do not pool, so 1,110.888006 USDC exists in total and no single call can reach it. Treat this file as a demonstration of the mechanism at size, never as a liquidity claim. The plain-language version is at <https://kerne.fi/round-trip>.
 
 **Key-rotation proof.** The same `hasRole` call, run against all three PSM instances, shows that mint authority moved and that the retired instances cannot mint. Run all four:
 
