@@ -23,11 +23,17 @@ curl -sL https://raw.githubusercontent.com/kerne-protocol/contracts-public/main/
 
 (If you would rather not pipe the internet to bash, read the script first or copy-paste the inlined checks below.)
 
-The script hits every documented public endpoint on `kerne.fi` and `app.kerne.fi`, validates HTTP 200, and asserts the response shape matches the contract Kerne advertises. Exit code 0 means every check passed. Exit code 1 means at least one check failed and the per-check output names which one. A JSON summary is emitted on stderr for downstream monitoring.
+The script runs in two parts, and the difference between them is the point.
+
+**Part 1** hits every documented public endpoint on `kerne.fi` and `app.kerne.fi`, validates HTTP 200, and asserts the response shape matches the contract Kerne advertises. Both hosts are Kerne-controlled, so this part tells you the surface is live and well-formed. It cannot tell you the numbers are true.
+
+**Part 2** does not ask Kerne anything. It reads `kUSD.totalSupply()`, the USDC and kUSD balances of all three PSMs, and skUSD's assets and share supply directly from Base over public JSON-RPC, through an endpoint Kerne does not operate, pay for or influence. From those reads alone it re-derives the backing invariant, that USDC held across the PSMs covers every kUSD in circulation, with no Kerne-published figure as an input. It then pulls the signed Proof of Reserves and checks the figures inside the signed bytes against the chain, reading Base at the exact block height the attestation names so the comparison is exact rather than approximate. A disagreement is printed as a mismatch naming both numbers.
+
+Exit code 0 means every check passed. Exit code 1 means at least one failed and the per-check output names which one. Exit code 3 means everything that ran passed but no public RPC endpoint answered, so Part 2 did not run; that is a separate code on purpose, because a rate-limited or blocked endpoint at your end is not evidence about Kerne and must not be read as though it were. If the endpoint that answers refuses archive reads, the script says so and reports the chain head and the signed figures side by side instead of asserting an equality between two different moments. A JSON summary is emitted on stderr for downstream monitoring.
+
+Point it at your own node, which is the strongest way to run it, with `BASE_RPC=https://your-node bash scripts/verify_public_endpoints.sh`.
 
 Dependencies: `curl`, `jq`. Both standard on Ubuntu, macOS, and most Linux distros. Windows users can install jq via `winget install jqlang.jq`.
-
-The same script runs in Kerne's own CI on every push to `main` and on a six-hourly schedule, so a broken endpoint usually surfaces in CI before it surfaces here. That workflow lives in Kerne's private monorepo and is not part of this mirror, so it is not a claim you can check from this repository. Running the script is.
 
 ---
 
@@ -245,7 +251,9 @@ The deployment registry (`deployments/8453.json`) and this verification tooling 
 cast code 0x8ccc56B5624e2FDB592F6609d81F4c3798e3292B --rpc-url https://mainnet.base.org
 ```
 
-A full forge-testable source mirror (clone + `forge test` + local bytecode diff) will be added to this repository at the next contract redeploy, when the in-development source and the deployed bytecode are realigned. Known source-vs-deployed drift in the interim is disclosed in the `gaps` array of `kerne.fi/api/risk-status`. The extensive Foundry suite (900+ Solidity tests) plus the Python threshold-drift suite run in Kerne's CI on every push.
+A full forge-testable source mirror (clone + `forge test` + local bytecode diff) will be added to this repository at the next contract redeploy, when the in-development source and the deployed bytecode are realigned. Known source-vs-deployed drift in the interim is disclosed in the `gaps` array of `kerne.fi/api/risk-status`.
+
+On tests, take the checkable number rather than ours. The mirrored Foundry suite in this repository runs on every push through `.github/workflows/forge-ci.yml`, and its badge at the top of the README is the live result; you can also clone and run `forge test` yourself. Kerne's private monorepo carries a much larger suite, measured at 2,516 Solidity test functions across 137 test files on July 31, 2026, plus Python and TypeScript suites. Nobody outside Kerne can execute that number or watch it run, so read it as a statement about our internal process and read the mirrored suite as the evidence.
 
 ### 8. Audit posture
 
