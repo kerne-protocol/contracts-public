@@ -1,0 +1,57 @@
+name: stocks covered call
+
+# Builds and tests the covered-call vault under stocks/covered-call from a clean
+# checkout. It is a separate Foundry project from the mirrored bundles at the
+# repository root, so it gets its own job and its own badge.
+#
+# Hermetic: no RPC endpoint and no key. The fork test in that folder is opt-in
+# (FORK_TESTS=1) and is not run here, for the same reason the root workflow does
+# not run fork tests: a public badge that goes red when somebody else's RPC
+# rate-limits teaches people to ignore the badge.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'stocks/covered-call/**'
+      - '.github/workflows/stocks-covered-call.yml'
+  pull_request:
+    paths:
+      - 'stocks/covered-call/**'
+      - '.github/workflows/stocks-covered-call.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: forge build + forge test (stocks/covered-call)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out the repository and its submodules
+        uses: actions/checkout@v4
+        with:
+          # forge-std is the root submodule at lib/forge-std. OpenZeppelin for
+          # this folder is vendored inside it.
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          # Pinned to the version this folder was built and tested with before it
+          # was published (2026-11-13). Raise it on purpose, in its own commit.
+          version: v1.5.1
+
+      - name: Show toolchain versions
+        run: forge --version
+
+      - name: Build the vault
+        working-directory: stocks/covered-call
+        run: forge build
+
+      - name: Run the vault tests
+        working-directory: stocks/covered-call
+        run: forge test -vv

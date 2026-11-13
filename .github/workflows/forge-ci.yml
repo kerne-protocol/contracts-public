@@ -42,7 +42,11 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          # Pinned on 2026-11-13 to the version of the last passing run (2026-08-24).
+          # "stable" has since moved to 1.9.0, which changes coverage and test behaviour
+          # and has not been run against this repository. Raise it on purpose, in its
+          # own commit, and read the run before trusting it.
+          version: v1.7.1
 
       - name: Show toolchain versions
         run: |

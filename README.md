@@ -154,3 +154,16 @@ See [`SECURITY.md`](SECURITY.md). Do not open public issues for vulnerabilities.
 ## License
 
 MIT. See [`LICENSE`](LICENSE).
+
+## Also here: two option vaults for tokenized stocks (not audited)
+
+Built for Base's Stocks Maxxing season. Both are separate from the stablecoin contracts mirrored
+above. Neither is audited and neither is in the scope of the Hexens report under `audits/`.
+
+- [`stocks/covered-call`](stocks/covered-call): source, tests and deployment record of
+  `KerneCoveredCallVault`, deployed closed (deposit cap 0) on Base at
+  `0xc6180E9af7Cb4c6D47A230a6c5047fA615Bd0956` on 2026-11-12. Tests run in the workflow
+  `stocks covered call`.
+- [`stocks/cash-secured-put`](stocks/cash-secured-put): source, tests and in-house review record of
+  `KerneCashSecuredPutVault`, the put side of the same desk. Not deployed as of 2026-11-13. Tests
+  run in the workflow `stocks cash secured put`.
